@@ -97,11 +97,12 @@ useVisitorsRealtime({
 
     return visitors.filter((visitor) => {
       const searchableContent = [
-        visitor.name,
-        visitor.phone,
-        visitor.invitedBy,
-        visitor.cellName,
-      ]
+  visitor.name,
+  visitor.phone,
+  visitor.invitedBy,
+  visitor.cellName,
+  visitor.responsibleLeader?.fullName,
+]
         .filter(Boolean)
         .join(" ")
         .toLocaleLowerCase("pt-BR");
@@ -246,15 +247,22 @@ function VisitorCard({ visitor }: VisitorCardProps) {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-500">
-            {visitor.phone && (
-              <span className="inline-flex items-center gap-1.5">
-                <MessageCircle size={14} />
-                {visitor.phone}
-              </span>
-            )}
+  {visitor.phone && (
+    <span className="inline-flex items-center gap-1.5">
+      <MessageCircle size={14} />
+      {visitor.phone}
+    </span>
+  )}
 
-            {visitor.invitedBy && <span>Convidado por: {visitor.invitedBy}</span>}
-          </div>
+  {visitor.invitedBy && (
+    <span>Convidado por: {visitor.invitedBy}</span>
+  )}
+
+  <span className="inline-flex items-center gap-1.5">
+    <Users size={14} />
+    Líder: {visitor.responsibleLeader?.fullName || "Não informado"}
+  </span>
+</div>
         </div>
       </div>
     </Link>

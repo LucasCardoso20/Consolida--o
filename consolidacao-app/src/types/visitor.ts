@@ -17,9 +17,11 @@ export type Visitor = {
   invitedBy: string | null;
   visitDate: string;
   notes: string | null;
-followUpOwnerName: string | null;
-nextContactDate: string | null;
-nextAction: string | null;
+
+  followUpOwnerName: string | null;
+  nextContactDate: string | null;
+  nextAction: string | null;
+
   receivedAtService: boolean;
   receivedGift: boolean;
   phoneConfirmed: boolean;
@@ -32,6 +34,16 @@ nextAction: string | null;
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
+
+  // ID salvo na tabela visitors.
+  responsibleLeaderId: string;
+
+  // Dados do perfil relacionado, carregados na query do Supabase.
+  responsibleLeader: {
+    id: string;
+    fullName: string | null;
+    role: "MASTER" | "LEADER";
+  } | null;
 };
 
 export type Cell = {

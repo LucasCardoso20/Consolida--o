@@ -27,7 +27,13 @@ next_action: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  responsible_leader_id: string;
 
+  responsible_leader?: {
+    id: string;
+    full_name: string | null;
+    role: "MASTER" | "LEADER";
+  } | null;
   cells?: {
     name: string;
   } | null;
@@ -50,6 +56,7 @@ export type NewVisitorData = {
   receivedAtService: boolean;
   receivedGift: boolean;
   phoneConfirmed: boolean;
+    responsibleLeaderId: string;
 };
 
 export type UpdateVisitorData = {
@@ -90,10 +97,19 @@ nextAction: visitor.next_action,
     attendedCell: visitor.attended_cell,
     followUpCompleted: visitor.follow_up_completed,
 
-    status: visitor.status,
+        status: visitor.status,
     createdBy: visitor.created_by,
     createdAt: visitor.created_at,
     updatedAt: visitor.updated_at,
+
+    responsibleLeaderId: visitor.responsible_leader_id,
+    responsibleLeader: visitor.responsible_leader
+      ? {
+          id: visitor.responsible_leader.id,
+          fullName: visitor.responsible_leader.full_name,
+          role: visitor.responsible_leader.role,
+        }
+      : null,
   };
 }
 
@@ -194,7 +210,12 @@ next_action,
         created_by,
         created_at,
         updated_at,
-        cells ( name )
+        cells ( name ),
+        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+          id,
+          full_name,
+          role
+        )
       `,
     )
     .order("created_at", { ascending: false });
@@ -236,7 +257,12 @@ next_action,
         created_by,
         created_at,
         updated_at,
-        cells ( name )
+        cells ( name ),
+        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+          id,
+          full_name,
+          role
+        )
       `,
     )
     .eq("id", visitorId)
@@ -309,7 +335,12 @@ next_action,
         created_by,
         created_at,
         updated_at,
-        cells ( name )
+        cells ( name ),
+        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+          id,
+          full_name,
+          role
+        )
       `,
     )
     .single();
@@ -367,7 +398,12 @@ next_action,
         created_by,
         created_at,
         updated_at,
-        cells ( name )
+        cells ( name ),
+        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+          id,
+          full_name,
+          role
+        )
       `,
     )
     .single();
@@ -420,7 +456,12 @@ next_action,
         created_by,
         created_at,
         updated_at,
-        cells ( name )
+        cells ( name ),
+        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+          id,
+          full_name,
+          role
+        )
       `,
     )
     .single();

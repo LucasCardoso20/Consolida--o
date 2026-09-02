@@ -16,6 +16,7 @@ import { z } from "zod";
 import { createVisitor, getCells } from "../lib/visitors";
 import type { Cell } from "../types/visitor";
 import type { ReactNode } from "react";
+import { LeaderSelect } from "../components/visitors/LeaderSelect";
 const visitorSchema = z.object({
   name: z
     .string()
@@ -64,6 +65,7 @@ export function NewVisitorPage() {
   const [cells, setCells] = useState<Cell[]>([]);
   const [loadingCells, setLoadingCells] = useState(true);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [responsibleLeaderId, setResponsibleLeaderId] = useState("");
 
   const {
     register,
@@ -101,31 +103,44 @@ export function NewVisitorPage() {
   }, []);
 
   async function onSubmit(data: VisitorFormData) {
-    setServerError(null);
+  setServerError(null);
 
-    try {
-      await createVisitor({
-        name: data.name,
-        phone: data.phone || null,
-        address: data.address || null,
-        invitedBy: data.invitedBy || null,
-        cellId: data.cellId || null,
-        visitDate: data.visitDate,
-        notes: data.notes || null,
-        receivedAtService: data.receivedAtService,
-        receivedGift: data.receivedGift,
-        phoneConfirmed: data.phoneConfirmed,
-      });
-
-      navigate("/visitantes");
-    } catch (error) {
-      setServerError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível salvar o visitante.",
-      );
-    }
+  // O LeaderSelect usa o state responsibleLeaderId.
+  // Portanto, validamos esse valor antes de salvar.
+  if (!responsibleLeaderId) {
+    setServerError("Selecione o líder responsável pelo visitante.");
+    return;
   }
+
+  try {
+    await createVisitor({
+      name: data.name,
+      phone: data.phone || null,
+      address: data.address || null,
+      invitedBy: data.invitedBy || null,
+      cellId: data.cellId || null,
+      visitDate: data.visitDate,
+      notes: data.notes || null,
+      receivedAtService: data.receivedAtService,
+      receivedGift: data.receivedGift,
+      phoneConfirmed: data.phoneConfirmed,
+
+      // NOVO CAMPO:
+      responsibleLeaderId: responsibleLeaderId,
+    });
+
+    // Limpa o líder selecionado antes de sair da página.
+    setResponsibleLeaderId("");
+
+    navigate("/visitantes");
+  } catch (error) {
+    setServerError(
+      error instanceof Error
+        ? error.message
+        : "Não foi possível salvar o visitante.",
+    );
+  }
+}
 
   return (
     <section className="mx-auto max-w-2xl">
@@ -166,33 +181,40 @@ export function NewVisitorPage() {
             />
           </FormField>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <FormField label="Telefone / WhatsApp" error={errors.phone?.message}>
-              <input
-                {...register("phone")}
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="(11) 99999-9999"
-                className={inputClassName(Boolean(errors.phone))}
-              />
-            </FormField>
+         <div className="grid gap-5 sm:grid-cols-2">
+  <FormField label="Telefone / WhatsApp" error={errors.phone?.message}>
+    <input
+      {...register("phone")}
+      inputMode="tel"
+      autoComplete="tel"
+      placeholder="(11) 99999-9999"
+      className={inputClassName(Boolean(errors.phone))}
+    />
+  </FormField>
 
-            <FormField label="Data da visita" required error={errors.visitDate?.message}>
-              <input
-                {...register("visitDate")}
-                type="date"
-                className={inputClassName(Boolean(errors.visitDate))}
-              />
-            </FormField>
-            <FormField label="Endereço" error={errors.address?.message}>
-  <input
-    {...register("address")}
-    autoComplete="street-address"
-    placeholder="Ex.: Rua das Flores, 123 — Bairro Centro"
-    className={inputClassName(Boolean(errors.address))}
-  />
-</FormField>
-          </div>
+  <FormField label="Data da visita" required error={errors.visitDate?.message}>
+    <input
+      {...register("visitDate")}
+      type="date"
+      className={inputClassName(Boolean(errors.visitDate))}
+    />
+  </FormField>
+
+  <FormField label="Endereço" error={errors.address?.message}>
+    <input
+      {...register("address")}
+      autoComplete="street-address"
+      placeholder="Ex.: Rua das Flores, 123 — Bairro Centro"
+      className={inputClassName(Boolean(errors.address))}
+    />
+  </FormField>
+</div>
+
+<LeaderSelect
+  value={responsibleLeaderId}
+  onChange={setResponsibleLeaderId}
+  disabled={isSubmitting}
+/>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <FormField label="Convidado por" error={errors.invitedBy?.message}>

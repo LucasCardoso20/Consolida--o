@@ -69,10 +69,10 @@ function isTodayContact(
 }
 
 function isWithoutOwner(
-  followUpOwnerName: string | null,
+  responsibleLeaderId: string | null,
   followUpCompleted: boolean,
 ) {
-  return !followUpOwnerName && !followUpCompleted;
+  return !responsibleLeaderId && !followUpCompleted;
 }
 
 export function DashboardPage() {
@@ -124,13 +124,10 @@ const todayVisitors = visitors
 const visitorsWithoutOwner = visitors
   .filter((visitor) =>
     isWithoutOwner(
-      visitor.followUpOwnerName,
+      visitor.responsibleLeaderId,
       visitor.followUpCompleted,
     ),
   )
-  .sort((firstVisitor, secondVisitor) =>
-    firstVisitor.name.localeCompare(secondVisitor.name, "pt-BR"),
-  );
 
 const upcomingVisitors = visitors
   .filter(
@@ -487,9 +484,10 @@ useVisitorsRealtime({
                 : ""}
             </p>
 
-            <p className="mt-1 text-xs text-slate-400">
-              {visitor.followUpOwnerName ?? "Sem responsável"}
-            </p>
+            <p className="mt-2 text-sm text-slate-600">
+  <span className="font-semibold">Responsável: </span>
+  {visitor.responsibleLeader?.fullName ?? "Definido"}
+</p>
           </div>
         </Link>
       ))}
@@ -700,10 +698,9 @@ function PriorityVisitorItem({
             </span>
           </div>
 
-          <p className="mt-2 text-sm text-slate-600">
-            <span className="font-semibold">Responsável: </span>
-            {visitor.followUpOwnerName ?? "Ainda não definido"}
-          </p>
+          <p className="mt-1 text-xs text-slate-400">
+  {visitor.responsibleLeader?.fullName ?? "Responsável definido"}
+</p>
 
           <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-500">
             <span className="font-semibold">Próxima ação: </span>

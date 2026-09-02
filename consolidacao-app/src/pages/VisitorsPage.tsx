@@ -260,7 +260,7 @@ function VisitorCard({ visitor }: VisitorCardProps) {
 
   <span className="inline-flex items-center gap-1.5">
     <Users size={14} />
-    Líder: {visitor.responsibleLeader?.fullName || "Não informado"}
+    Responsável: {visitor.responsibleLeader?.fullName || "Não informado"}
   </span>
 </div>
         </div>

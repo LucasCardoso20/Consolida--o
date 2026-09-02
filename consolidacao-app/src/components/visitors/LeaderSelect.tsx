@@ -77,7 +77,7 @@ export function LeaderSelect({
         htmlFor="responsible_leader_id"
         className="mb-2 block text-sm font-bold text-slate-700"
       >
-        Líder responsável
+        Responsável
       </label>
 
       <div className="relative">
@@ -99,8 +99,8 @@ export function LeaderSelect({
             {isLoading
               ? "Carregando líderes..."
               : leaders.length === 0
-                ? "Nenhum líder ativo encontrado"
-                : "Selecione o líder responsável"}
+                ? "Nenhum responsável ativo encontrado"
+                : "Selecione o responsável"}
           </option>
 
           {leaders.map((leader) => (
@@ -125,7 +125,7 @@ export function LeaderSelect({
       </div>
 
       <p className="mt-2 text-xs leading-relaxed text-slate-500">
-        O líder selecionado será responsável pelo acompanhamento deste
+        A pessoa selecionada será responsável pelo acompanhamento deste
         visitante.
       </p>
 

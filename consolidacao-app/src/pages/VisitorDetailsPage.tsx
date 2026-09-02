@@ -36,6 +36,7 @@ import {
   type VisitorInteraction,
 } from "../lib/visitorInteractions";
 import type { Cell, Visitor } from "../types/visitor";
+import { LeaderSelect } from "../components/visitors/LeaderSelect";
 
 const visitorEditSchema = z.object({
   name: z
@@ -243,6 +244,7 @@ const [interactions, setInteractions] = useState<VisitorInteraction[]>([]);
 const [isLoadingInteractions, setIsLoadingInteractions] = useState(true);
 const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
 const [interactionError, setInteractionError] = useState<string | null>(null);
+const [responsibleLeaderId, setResponsibleLeaderId] = useState("");
   const {
     register,
     handleSubmit,
@@ -339,8 +341,9 @@ useEffect(() => {
     }
 
     setFormError(null);
+    
     setIsLoadingCells(true);
-
+setResponsibleLeaderId(visitor.responsibleLeaderId);
     reset({
   name: visitor.name,
   phone: visitor.phone ?? "",
@@ -386,7 +389,10 @@ useEffect(() => {
     }
 
     setFormError(null);
-
+if (!responsibleLeaderId) {
+  setFormError("Selecione o responsável pelo visitante.");
+  return;
+}
     try {
       const updatedVisitor = await updateVisitor(visitor.id, {
   name: data.name,
@@ -396,7 +402,7 @@ useEffect(() => {
   cellId: data.cellId || null,
   visitDate: data.visitDate,
   notes: data.notes || null,
-
+responsibleLeaderId,
   followUpOwnerName: visitor.followUpOwnerName,
   nextContactDate: visitor.nextContactDate,
   nextAction: visitor.nextAction,
@@ -683,11 +689,11 @@ async function onSubmitInteraction(data: InteractionFormData) {
           <UserCheck size={18} className="mt-0.5 shrink-0 text-brand-700" />
 
           <div>
-            <p className="font-semibold">Responsável</p>
-            <p className="mt-0.5 text-slate-600">
-              {visitor.followUpOwnerName ?? "Ainda não definido"}
-            </p>
-          </div>
+  <p className="font-semibold">Responsável pelo acompanhamento</p>
+  <p className="mt-0.5 text-slate-600">
+    {visitor.responsibleLeader?.fullName ?? "Ainda não definido"}
+  </p>
+</div>
         </div>
 
         <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3 text-sm text-slate-700">
@@ -959,17 +965,11 @@ async function onSubmitInteraction(data: InteractionFormData) {
               </FormField>
 
               <div className="grid gap-5 sm:grid-cols-2">
-                <FormField
-                  label="Convidado por"
-                  error={errors.invitedBy?.message}
-                >
-                  <input
-                    {...register("invitedBy")}
-                    placeholder="Ex.: Maria Silva"
-                    className={inputClassName(Boolean(errors.invitedBy))}
-                  />
-                </FormField>
-
+                <LeaderSelect
+                    value={responsibleLeaderId}
+                    onChange={setResponsibleLeaderId}
+                    disabled={isSubmitting}
+                    />
                 <FormField label="Célula">
                   <select
                     {...register("cellId")}

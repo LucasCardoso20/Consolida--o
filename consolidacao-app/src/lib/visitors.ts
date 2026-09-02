@@ -67,6 +67,7 @@ export type UpdateVisitorData = {
   cellId: string | null;
   visitDate: string;
   notes: string | null;
+    responsibleLeaderId: string;
 
   followUpOwnerName: string | null;
   nextContactDate: string | null;
@@ -207,9 +208,10 @@ next_action,
         attended_cell,
         follow_up_completed,
         status,
-        created_by,
+                created_by,
         created_at,
         updated_at,
+        responsible_leader_id,
         cells ( name ),
         responsible_leader:profiles!visitors_responsible_leader_id_fkey (
           id,
@@ -233,38 +235,42 @@ export async function getVisitorById(visitorId: string): Promise<Visitor> {
   const { data, error } = await supabase
     .from("visitors")
     .select(
-      `
-        id,
-        organization_id,
-        cell_id,
-        name,
-        phone,
-        address,
-        invited_by,
-        visit_date,
-        notes,
-        follow_up_owner_name,
-next_contact_date,
-next_action,
-        received_at_service,
-        received_gift,
-        phone_confirmed,
-        first_contact_made,
-        invited_to_cell,
-        attended_cell,
-        follow_up_completed,
-        status,
-        created_by,
-        created_at,
-        updated_at,
-        cells ( name ),
-        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
-          id,
-          full_name,
-          role
-        )
-      `,
+  `
+    id,
+    organization_id,
+    cell_id,
+    name,
+    phone,
+    address,
+    invited_by,
+    visit_date,
+    notes,
+    follow_up_owner_name,
+    next_contact_date,
+    next_action,
+    received_at_service,
+    received_gift,
+    phone_confirmed,
+    first_contact_made,
+    invited_to_cell,
+    attended_cell,
+    follow_up_completed,
+    status,
+    created_by,
+    created_at,
+    updated_at,
+
+    responsible_leader_id,
+
+    cells ( name ),
+
+    responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+      id,
+      full_name,
+      role
     )
+  `,
+)
     .eq("id", visitorId)
     .single();
 
@@ -291,7 +297,7 @@ export async function createVisitor(
     .insert({
       organization_id: profile.organization_id,
       created_by: profile.id,
-
+    responsible_leader_id: visitorData.responsibleLeaderId,
       name: visitorData.name.trim(),
       phone: normalizeOptionalValue(visitorData.phone),
       address: normalizeOptionalValue(visitorData.address),
@@ -311,38 +317,42 @@ export async function createVisitor(
       status,
     })
     .select(
-      `
-        id,
-        organization_id,
-        cell_id,
-        name,
-        phone,
-        address,
-        invited_by,
-        visit_date,
-        notes,
-        follow_up_owner_name,
-next_contact_date,
-next_action,
-        received_at_service,
-        received_gift,
-        phone_confirmed,
-        first_contact_made,
-        invited_to_cell,
-        attended_cell,
-        follow_up_completed,
-        status,
-        created_by,
-        created_at,
-        updated_at,
-        cells ( name ),
-        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
-          id,
-          full_name,
-          role
-        )
-      `,
+  `
+    id,
+    organization_id,
+    cell_id,
+    name,
+    phone,
+    address,
+    invited_by,
+    visit_date,
+    notes,
+    follow_up_owner_name,
+    next_contact_date,
+    next_action,
+    received_at_service,
+    received_gift,
+    phone_confirmed,
+    first_contact_made,
+    invited_to_cell,
+    attended_cell,
+    follow_up_completed,
+    status,
+    created_by,
+    created_at,
+    updated_at,
+
+    responsible_leader_id,
+
+    cells ( name ),
+
+    responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+      id,
+      full_name,
+      role
     )
+  `,
+)
     .single();
 
   if (error || !data) {
@@ -374,38 +384,42 @@ export async function updateVisitor(
     })
     .eq("id", visitorId)
     .select(
-      `
-        id,
-        organization_id,
-        cell_id,
-        name,
-        phone,
-        address,
-        invited_by,
-        visit_date,
-        notes,
-        follow_up_owner_name,
-next_contact_date,
-next_action,
-        received_at_service,
-        received_gift,
-        phone_confirmed,
-        first_contact_made,
-        invited_to_cell,
-        attended_cell,
-        follow_up_completed,
-        status,
-        created_by,
-        created_at,
-        updated_at,
-        cells ( name ),
-        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
-          id,
-          full_name,
-          role
-        )
-      `,
+  `
+    id,
+    organization_id,
+    cell_id,
+    name,
+    phone,
+    address,
+    invited_by,
+    visit_date,
+    notes,
+    follow_up_owner_name,
+    next_contact_date,
+    next_action,
+    received_at_service,
+    received_gift,
+    phone_confirmed,
+    first_contact_made,
+    invited_to_cell,
+    attended_cell,
+    follow_up_completed,
+    status,
+    created_by,
+    created_at,
+    updated_at,
+
+    responsible_leader_id,
+
+    cells ( name ),
+
+    responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+      id,
+      full_name,
+      role
     )
+  `,
+)
     .single();
 
   if (error || !data) {
@@ -432,38 +446,42 @@ export async function updateVisitorProgress(visitor: Visitor): Promise<Visitor> 
     })
     .eq("id", visitor.id)
     .select(
-      `
-        id,
-        organization_id,
-        cell_id,
-        name,
-        phone,
-        address,
-        invited_by,
-        visit_date,
-        notes,
-        follow_up_owner_name,
-next_contact_date,
-next_action,
-        received_at_service,
-        received_gift,
-        phone_confirmed,
-        first_contact_made,
-        invited_to_cell,
-        attended_cell,
-        follow_up_completed,
-        status,
-        created_by,
-        created_at,
-        updated_at,
-        cells ( name ),
-        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
-          id,
-          full_name,
-          role
-        )
-      `,
+  `
+    id,
+    organization_id,
+    cell_id,
+    name,
+    phone,
+    address,
+    invited_by,
+    visit_date,
+    notes,
+    follow_up_owner_name,
+    next_contact_date,
+    next_action,
+    received_at_service,
+    received_gift,
+    phone_confirmed,
+    first_contact_made,
+    invited_to_cell,
+    attended_cell,
+    follow_up_completed,
+    status,
+    created_by,
+    created_at,
+    updated_at,
+
+    responsible_leader_id,
+
+    cells ( name ),
+
+    responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+      id,
+      full_name,
+      role
     )
+  `,
+)
     .single();
 
   if (error || !data) {

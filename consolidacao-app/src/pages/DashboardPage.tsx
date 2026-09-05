@@ -5,9 +5,6 @@ import {
   LoaderCircle,
   MessageCircle,
   Users,
-  AlertTriangle,
-  CalendarClock,
-  CircleUserRound,
   UserRoundPlus,
   Phone, // Adicionado para o ícone de WhatsApp
 } from "lucide-react";

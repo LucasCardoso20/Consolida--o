@@ -9,9 +9,9 @@ import {
   Phone,
   MapPin,
   CalendarDays,
-  Search, // Importar o ícone de busca
+  Search,
 } from "lucide-react";
-import { useEffect, useState, useMemo } from "react"; // Importar useMemo
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -23,7 +23,6 @@ import {
   type CellFormData,
 } from "../lib/cells";
 
-// Esquema de validação para o formulário de célula
 const cellSchema = z.object({
   name: z
     .string()
@@ -57,7 +56,6 @@ const cellSchema = z.object({
 
 type CellFormValues = z.infer<typeof cellSchema>;
 
-// Função auxiliar para ordenar células
 function sortCells(a: Cell, b: Cell) {
   return a.name.localeCompare(b.name);
 }
@@ -69,7 +67,7 @@ export function CellsPage() {
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState(""); // Novo estado para o termo de pesquisa
+  const [searchTerm, setSearchTerm] = useState("");
 
   const {
     register,
@@ -189,7 +187,6 @@ export function CellsPage() {
     }
   }
 
-  // Lógica de filtro para o campo de pesquisa
   const filteredCells = useMemo(() => {
     if (!searchTerm) {
       return cells;
@@ -208,6 +205,7 @@ export function CellsPage() {
 
   return (
     <section>
+      {/* Seção superior: Título e botão "Nova célula" */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-paz-primary">Organização</p>
@@ -244,6 +242,7 @@ export function CellsPage() {
         />
       </div>
 
+      {/* Exibição de estado: Carregando, Erro, Lista Vazia, Resultados da Pesquisa */}
       {isLoading ? (
         <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-paz-border bg-white p-10 text-center">
           <LoaderCircle className="animate-spin text-paz-muted" size={38} />
@@ -267,9 +266,9 @@ export function CellsPage() {
             Tentar novamente
           </button>
         </div>
-      ) : cells.length === 0 && !searchTerm ? ( // Se não há células e não está pesquisando
+      ) : cells.length === 0 && !searchTerm ? (
         <EmptyCellList onCreateNewCell={openCreateForm} />
-      ) : filteredCells.length === 0 && searchTerm ? ( // Se está pesquisando e não encontrou resultados
+      ) : filteredCells.length === 0 && searchTerm ? (
         <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-paz-border bg-white p-10 text-center">
           <Search className="text-paz-muted" size={38} />
           <h3 className="mt-4 font-bold text-paz-text">Nenhuma célula encontrada</h3>
@@ -306,8 +305,8 @@ export function CellsPage() {
       {/* Modal de Formulário */}
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white shadow-float">
-            <div className="flex items-center justify-between border-b border-paz-border px-6 py-4">
+          <div className="w-full max-w-md rounded-xl bg-white shadow-float max-h-[90vh] overflow-y-auto"> {/* Adicionado max-h e overflow-y */}
+            <div className="flex items-center justify-between border-b border-paz-border px-6 py-4 sticky top-0 bg-white z-10"> {/* Adicionado sticky top-0 */}
               <h3 className="text-lg font-semibold text-paz-text">
                 {selectedCell ? "Editar célula" : "Nova célula"}
               </h3>
@@ -328,6 +327,7 @@ export function CellsPage() {
                 </div>
               )}
 
+              {/* Campos do formulário */}
               {/* Campo Nome da Célula */}
               <label>
                 <span className="mb-1.5 block text-[12px] font-medium text-paz-text">
@@ -438,7 +438,7 @@ export function CellsPage() {
                 </label>
               </div>
 
-              <div className="flex justify-end gap-2 border-t border-paz-border pt-4">
+              <div className="flex flex-col-reverse gap-2 border-t border-paz-border pt-4 sm:flex-row sm:justify-end"> {/* Ajustado para mobile */}
                 <button
                   type="button"
                   onClick={closeForm}
@@ -449,7 +449,7 @@ export function CellsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-lg bg-paz-primary px-4 py-2.5 text-[12px] font-semibold text-white shadow-sm transition hover:bg-paz-hover"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-paz-primary px-4 py-2.5 text-[12px] font-semibold text-white shadow-sm transition hover:bg-paz-hover"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -502,9 +502,9 @@ type CellListItemProps = {
 
 function CellListItem({ cell, onEdit }: CellListItemProps) {
   return (
-    <div className="rounded-2xl border border-paz-border bg-white p-5 shadow-card flex items-start justify-between">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
+    <div className="rounded-2xl border border-paz-border bg-white p-4 shadow-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"> {/* Ajustado para mobile */}
+      <div className="flex-1"> {/* Adicionado flex-1 para ocupar espaço */}
+        <div className="flex flex-wrap items-center gap-2 mb-1"> {/* Adicionado flex-wrap */}
           <p className="text-[16px] font-semibold text-paz-text">{cell.name}</p>
           <span
             className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -519,7 +519,7 @@ function CellListItem({ cell, onEdit }: CellListItemProps) {
         {cell.leaderName && (
           <p className="text-[13px] text-paz-muted">Líder: {cell.leaderName}</p>
         )}
-        <div className="flex flex-col gap-y-1 mt-2 text-[12px] text-paz-muted">
+        <div className="grid grid-cols-1 sm:grid-cols-1 gap-y-1 mt-2 text-[12px] text-paz-muted"> {/* Ajustado para grid */}
           {cell.leaderPhone && (
             <span className="flex items-center gap-1">
               <Phone size={14} strokeWidth={1.5} className="text-paz-muted" />
@@ -532,8 +532,6 @@ function CellListItem({ cell, onEdit }: CellListItemProps) {
               {cell.location}
             </span>
           )}
-          {/* Supondo que você tenha um campo para dia/horário na sua Cell, ou que possa ser derivado de notes */}
-          {/* Exemplo hardcoded, ajuste conforme sua lógica de dados */}
           <span className="flex items-center gap-1">
             <CalendarDays size={14} strokeWidth={1.5} className="text-paz-muted" />
             Dia: Quinta-feira | Horário: 20h {/* Placeholder */}
@@ -543,7 +541,7 @@ function CellListItem({ cell, onEdit }: CellListItemProps) {
       <button
         type="button"
         onClick={() => onEdit(cell)}
-        className="rounded-lg bg-paz-soft px-4 py-2.5 text-[13px] font-semibold text-paz-primary transition hover:bg-paz-primary hover:text-white shadow-sm"
+        className="w-full sm:w-auto rounded-lg bg-paz-soft px-4 py-2.5 text-[13px] font-semibold text-paz-primary transition hover:bg-paz-primary hover:text-white shadow-sm"
       >
         <Edit3 size={16} className="inline-block mr-2" />
         Editar
@@ -551,4 +549,3 @@ function CellListItem({ cell, onEdit }: CellListItemProps) {
     </div>
   );
 }
-

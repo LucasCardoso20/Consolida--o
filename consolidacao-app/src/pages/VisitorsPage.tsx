@@ -1,3 +1,5 @@
+// src/pages/VisitorsPage.tsx
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   Clock3,
@@ -5,10 +7,9 @@ import {
   Search,
   UserRound,
   Users,
-  Phone, // Adicionado para o telefone, se for o ícone desejado
-  UserRoundPlus, // Adicionado para "Convidado por"
+  Phone, // Importado para o VisitorCard
+  UserRoundPlus, // Importado para o VisitorCard
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { getVisitors } from "../lib/visitors";
@@ -28,7 +29,7 @@ function getVisitorStatus(visitor: Visitor) {
   if (visitor.followUpCompleted) {
     return {
       label: "Concluído",
-      className: "bg-paz-success/10 text-paz-success", // Aplicado design system
+      className: "bg-paz-success/10 text-paz-success",
       icon: CheckCircle2,
     };
   }
@@ -36,7 +37,7 @@ function getVisitorStatus(visitor: Visitor) {
   if (visitor.firstContactMade) {
     return {
       label: "Em acompanhamento",
-      className: "bg-paz-info/10 text-paz-info", // Aplicado design system
+      className: "bg-paz-info/10 text-paz-info",
       icon: CheckCircle2,
     };
   }
@@ -44,14 +45,14 @@ function getVisitorStatus(visitor: Visitor) {
   if (visitor.phone) {
     return {
       label: "Contato pendente",
-      className: "bg-paz-warning/10 text-paz-warning", // Aplicado design system
+      className: "bg-paz-warning/10 text-paz-warning",
       icon: Clock3,
     };
   }
 
   return {
     label: "Novo visitante",
-    className: "bg-paz-soft text-paz-muted", // Aplicado design system
+    className: "bg-paz-soft text-paz-muted",
     icon: UserRound,
   };
 }
@@ -81,7 +82,6 @@ export function VisitorsPage() {
     void loadVisitors();
   }, [loadVisitors]);
 
-  // Certifique-se de que useVisitorsRealtime está recebendo onChange corretamente
   useVisitorsRealtime({
     onChange: () => {
       void loadVisitors();
@@ -113,13 +113,13 @@ export function VisitorsPage() {
 
   return (
     <section>
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"> {/* Ajustado para mobile */}
         <div>
-          <p className="text-sm font-semibold text-paz-primary">Pessoas</p> {/* Aplicado design system */}
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text"> {/* Aplicado design system */}
+          <p className="text-sm font-semibold text-paz-primary">Pessoas</p>
+          <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text">
             Visitantes
           </h2>
-          <p className="mt-2 text-sm text-paz-muted"> {/* Aplicado design system */}
+          <p className="mt-2 text-sm text-paz-muted">
             {visitors.length === 1
               ? "1 visitante cadastrado"
               : `${visitors.length} visitantes cadastrados`}
@@ -128,7 +128,7 @@ export function VisitorsPage() {
 
         <Link
           to="/visitantes/novo"
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover" // Aplicado design system
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
         >
           <Plus size={18} />
           <span className="hidden sm:inline">Novo visitante</span>
@@ -138,7 +138,7 @@ export function VisitorsPage() {
 
       <div className="relative mt-6">
         <Search
-          className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-paz-muted" // Aplicado design system
+          className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-paz-muted"
           size={20}
         />
 
@@ -147,19 +147,19 @@ export function VisitorsPage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar por nome, telefone ou célula..."
-          className="w-full rounded-xl border border-paz-border bg-white py-3 pr-4 pl-11 text-sm outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-4 focus:ring-paz-soft" // Aplicado design system
+          className="w-full rounded-xl border border-paz-border bg-white py-3 pr-4 pl-11 text-sm outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-4 focus:ring-paz-soft"
         />
       </div>
 
       {error && (
-        <p className="mt-5 rounded-xl border border-paz-error/20 bg-paz-error/10 p-3 text-sm font-medium text-paz-error"> {/* Aplicado design system */}
+        <p className="mt-5 rounded-xl border border-paz-error/20 bg-paz-error/10 p-3 text-sm font-medium text-paz-error">
           {error}
         </p>
       )}
 
       {isLoading ? (
-        <div className="mt-6 rounded-2xl border border-paz-border bg-white px-4 py-14 text-center"> {/* Aplicado design system */}
-          <p className="text-sm font-semibold text-paz-muted"> {/* Aplicado design system */}
+        <div className="mt-6 rounded-2xl border border-paz-border bg-white px-4 py-14 text-center">
+          <p className="text-sm font-semibold text-paz-muted">
             Carregando visitantes...
           </p>
         </div>
@@ -168,12 +168,12 @@ export function VisitorsPage() {
           {visitors.length === 0 ? (
             <EmptyVisitorList />
           ) : filteredVisitors.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center"> {/* Aplicado design system */}
-              <Search className="mx-auto text-paz-muted" size={38} /> {/* Aplicado design system */}
-              <h3 className="mt-4 font-bold text-paz-text"> {/* Aplicado design system */}
+            <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center">
+              <Search className="mx-auto text-paz-muted" size={38} />
+              <h3 className="mt-4 font-bold text-paz-text">
                 Nenhum resultado encontrado
               </h3>
-              <p className="mt-2 text-sm text-paz-muted"> {/* Aplicado design system */}
+              <p className="mt-2 text-sm text-paz-muted">
                 Tente buscar usando outro nome, telefone ou célula.
               </p>
             </div>
@@ -193,16 +193,16 @@ export function VisitorsPage() {
 // --- Componente EmptyVisitorList ---
 function EmptyVisitorList() {
   return (
-    <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center"> {/* Aplicado design system */}
-      <Users className="mx-auto text-paz-muted" size={38} /> {/* Aplicado design system */}
-      <h3 className="mt-4 font-bold text-paz-text">A lista está vazia</h3> {/* Aplicado design system */}
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-paz-muted"> {/* Aplicado design system */}
+    <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center">
+      <Users className="mx-auto text-paz-muted" size={38} />
+      <h3 className="mt-4 font-bold text-paz-text">A lista está vazia</h3>
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-paz-muted">
         Os visitantes cadastrados aparecerão aqui para facilitar o acompanhamento.
       </p>
 
       <Link
         to="/visitantes/novo"
-        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-paz-hover" // Aplicado design system
+        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-paz-hover"
       >
         <Plus size={18} />
         Cadastrar primeiro visitante
@@ -223,19 +223,19 @@ function VisitorCard({ visitor }: VisitorCardProps) {
   return (
     <Link
       to={`/visitantes/${visitor.id}`}
-      className="block rounded-2xl border border-paz-border bg-white p-4 shadow-sm transition hover:border-paz-primary hover:shadow-md sm:p-5" // Aplicado design system
+      className="block rounded-2xl border border-paz-border bg-white p-4 shadow-sm transition hover:border-paz-primary hover:shadow-md sm:p-5"
     >
       <div className="flex items-start gap-3">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-paz-soft text-paz-primary"> {/* Aplicado design system */}
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-paz-soft text-paz-primary">
           <UserRound size={21} />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <h3 className="truncate font-bold text-paz-text">{visitor.name}</h3> {/* Aplicado design system */}
+              <h3 className="truncate font-bold text-paz-text">{visitor.name}</h3>
 
-              <p className="mt-1 text-xs text-paz-muted"> {/* Aplicado design system */}
+              <p className="mt-1 text-xs text-paz-muted">
                 Visitou em {formatDate(visitor.visitDate)}
                 {visitor.cellName ? ` • ${visitor.cellName}` : ""}
               </p>
@@ -249,17 +249,17 @@ function VisitorCard({ visitor }: VisitorCardProps) {
             </span>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-paz-muted"> {/* Aplicado design system */}
+          <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-4 gap-y-2 text-xs font-medium text-paz-muted"> {/* Ajustado para mobile */}
             {visitor.phone && (
               <span className="inline-flex items-center gap-1.5">
-                <Phone size={14} /> {/* Usando Phone para telefone */}
+                <Phone size={14} />
                 {visitor.phone}
               </span>
             )}
 
             {visitor.invitedBy && (
-              <span className="inline-flex items-center gap-1.5"> {/* Adicionado inline-flex e gap */}
-                <UserRoundPlus size={14} /> {/* Ícone para "Convidado por" */}
+              <span className="inline-flex items-center gap-1.5">
+                <UserRoundPlus size={14} />
                 Convidado por: {visitor.invitedBy}
               </span>
             )}

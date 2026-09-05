@@ -1,3 +1,4 @@
+// src/pages/NewVisitorPage.tsx
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
@@ -144,32 +145,32 @@ export function NewVisitorPage() {
   }
 
   return (
-    <section className="mx-auto max-w-2xl">
+    <section className="mx-auto max-w-2xl px-4 sm:px-0"> {/* Adicionado padding horizontal para mobile */}
       <div className="mb-6">
         <Link
           to="/visitantes"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-paz-muted transition hover:text-paz-primary" // Ajustado text, hover
+          className="inline-flex items-center gap-2 text-sm font-semibold text-paz-muted transition hover:text-paz-primary"
         >
           <ArrowLeft size={18} />
           Voltar para visitantes
         </Link>
 
-        <p className="mt-5 text-sm font-semibold text-paz-primary"> {/* Ajustado text */}
+        <p className="mt-5 text-sm font-semibold text-paz-primary">
           Novo cadastro
         </p>
 
-        <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text sm:text-3xl"> {/* Ajustado text */}
+        <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text sm:text-3xl">
           Cadastrar visitante
         </h2>
 
-        <p className="mt-2 text-sm leading-relaxed text-paz-muted"> {/* Ajustado text */}
+        <p className="mt-2 text-sm leading-relaxed text-paz-muted">
           Registre os dados principais para que ninguém fique sem acompanhamento.
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="rounded-xl border border-paz-border bg-white p-5 shadow-sm sm:p-6" // Ajustado rounded, border
+        className="rounded-xl border border-paz-border bg-white p-5 shadow-sm sm:p-6"
       >
         <div className="space-y-5">
           <FormField label="Nome completo" required error={errors.name?.message}>
@@ -215,7 +216,7 @@ export function NewVisitorPage() {
             value={responsibleLeaderId}
             onChange={setResponsibleLeaderId}
             disabled={isSubmitting}
-            error={serverError} // Passando o erro para o LeaderSelect
+            error={serverError}
           />
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -231,7 +232,7 @@ export function NewVisitorPage() {
               <select
                 {...register("cellId")}
                 disabled={loadingCells}
-                className={inputClassName(false)} // Mantido false para não aplicar estilo de erro padrão
+                className={inputClassName(false)}
               >
                 <option value="">
                   {loadingCells
@@ -259,15 +260,15 @@ export function NewVisitorPage() {
           </FormField>
         </div>
 
-        <div className="mt-8 border-t border-paz-border pt-6"> {/* Ajustado border */}
+        <div className="mt-8 border-t border-paz-border pt-6">
           <div className="flex items-start gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-paz-soft text-paz-primary"> {/* Ajustado rounded, bg, text */}
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-paz-soft text-paz-primary">
               <CheckCircle2 size={20} />
             </div>
 
             <div>
-              <h3 className="font-bold text-paz-text">Recepção no culto</h3> {/* Ajustado text */}
-              <p className="mt-1 text-sm text-paz-muted"> {/* Ajustado text */}
+              <h3 className="font-bold text-paz-text">Recepção no culto</h3>
+              <p className="mt-1 text-sm text-paz-muted">
                 Marque as etapas que já foram realizadas.
               </p>
             </div>
@@ -298,15 +299,15 @@ export function NewVisitorPage() {
         </div>
 
         {serverError && (
-          <p className="mt-6 rounded-xl border border-paz-error bg-paz-error/10 p-3 text-sm font-medium text-paz-error"> {/* Ajustado rounded, border, bg, text */}
+          <p className="mt-6 rounded-xl border border-paz-error bg-paz-error/10 p-3 text-sm font-medium text-paz-error">
             {serverError}
           </p>
         )}
 
-        <div className="mt-8 flex flex-col-reverse gap-3 border-t border-paz-border pt-6 sm:flex-row sm:justify-end"> {/* Ajustado border */}
+        <div className="mt-8 flex flex-col-reverse gap-3 border-t border-paz-border pt-6 sm:flex-row sm:justify-end">
           <Link
             to="/visitantes"
-            className="inline-flex items-center justify-center rounded-xl border border-paz-border px-4 py-3 text-sm font-bold text-paz-muted transition hover:bg-paz-soft" // Ajustado rounded, border, text, hover
+            className="inline-flex items-center justify-center rounded-xl border border-paz-border px-4 py-3 text-sm font-bold text-paz-muted transition hover:bg-paz-soft"
           >
             Cancelar
           </Link>
@@ -314,7 +315,7 @@ export function NewVisitorPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-paz-primary px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover disabled:cursor-not-allowed disabled:opacity-60" // Ajustado rounded, bg, hover
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-paz-primary px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? (
               <>
@@ -344,15 +345,15 @@ type FormFieldProps = {
 function FormField({ label, children, required = false, error }: FormFieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-paz-text"> {/* Ajustado text */}
+      <span className="mb-2 block text-sm font-bold text-paz-text">
         {label}
-        {required && <span className="ml-1 text-paz-error">*</span>} {/* Ajustado text */}
+        {required && <span className="ml-1 text-paz-error">*</span>}
       </span>
 
       {children}
 
       {error && (
-        <span className="mt-1.5 block text-xs font-medium text-paz-error"> {/* Ajustado text */}
+        <span className="mt-1.5 block text-xs font-medium text-paz-error">
           {error}
         </span>
       )}
@@ -376,18 +377,18 @@ function CheckboxField({
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-start gap-3 rounded-xl border border-paz-border p-4 transition hover:border-paz-primary hover:bg-paz-soft" // Ajustado rounded, border, hover
+      className="flex cursor-pointer items-start gap-3 rounded-xl border border-paz-border p-4 transition hover:border-paz-primary hover:bg-paz-soft"
     >
       <input
         id={id}
         type="checkbox"
         {...registration}
-        className="mt-0.5 size-5 rounded border-paz-border text-paz-primary focus:ring-paz-soft" // Ajustado rounded, border, text, focus
+        className="mt-0.5 size-5 rounded border-paz-border text-paz-primary focus:ring-paz-soft"
       />
 
       <span>
-        <span className="block text-sm font-bold text-paz-text">{label}</span> {/* Ajustado text */}
-        <span className="mt-0.5 block text-xs leading-relaxed text-paz-muted"> {/* Ajustado text */}
+        <span className="block text-sm font-bold text-paz-text">{label}</span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-paz-muted">
           {description}
         </span>
       </span>
@@ -396,9 +397,9 @@ function CheckboxField({
 }
 
 function inputClassName(hasError: boolean) {
-  return `w-full rounded-xl border bg-white px-4 py-3 text-sm text-paz-text outline-none transition placeholder:text-paz-muted focus:ring-4 ${ // Ajustado rounded, text, placeholder
+  return `w-full rounded-xl border bg-white px-4 py-3 text-sm text-paz-text outline-none transition placeholder:text-paz-muted focus:ring-4 ${
     hasError
-      ? "border-paz-error focus:border-paz-error focus:ring-paz-error/20" // Ajustado border, focus, ring
-      : "border-paz-border focus:border-paz-primary focus:ring-paz-soft" // Ajustado border, focus, ring
+      ? "border-paz-error focus:border-paz-error focus:ring-paz-error/20"
+      : "border-paz-border focus:border-paz-primary focus:ring-paz-soft"
   }`;
 }

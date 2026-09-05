@@ -1,10 +1,11 @@
+// src/pages/PendingApprovalPage.tsx
 import {
   type ChangeEvent,
   useEffect,
   useMemo,
   useState,
   useCallback,
-  type FormEvent, // <--- Adicionado: Importação do useCallback
+  type FormEvent,
 } from "react";
 import {
   Building2,
@@ -38,7 +39,7 @@ type AccessRequest = {
   id: string;
   status: AccessRequestStatus;
   organization_id: string;
-  created_at: string; // Garantir que seja string
+  created_at: string;
 };
 
 type UserMetadata = {
@@ -106,17 +107,16 @@ export function PendingApprovalPage() {
         "",
     );
     setEmail(profile?.email || user?.email || "");
-    setPhone(profile?.phone || ""); // <--- Corrigido: 'phone' agora existe em UserProfile
+    setPhone(profile?.phone || "");
     setOrganizationId(profile?.organization_id || "");
 
-    // <--- Corrigido: Garantir que created_at seja string e propriedades existam
     setRequest(
       profile?.access_request_id && profile?.access_request_status && profile?.created_at
         ? {
             id: profile.access_request_id,
             status: profile.access_request_status,
             organization_id: profile.organization_id || "",
-            created_at: profile.created_at, // 'created_at' agora é garantido como string
+            created_at: profile.created_at,
           }
         : null,
     );
@@ -127,7 +127,7 @@ export function PendingApprovalPage() {
     profile?.email,
     profile?.full_name,
     profile?.organization_id,
-    profile?.phone, // <--- Adicionado à lista de dependências
+    profile?.phone,
     user?.email,
     userMetadata.full_name,
     userMetadata.name,
@@ -199,16 +199,6 @@ export function PendingApprovalPage() {
 
     setIsSubmitting(true);
 
-    /*
-     * Esta RPC precisa existir no Supabase com estes parâmetros:
-     *
-     * submit_access_request_by_organization(
-     *   p_organization_id uuid,
-     *   p_full_name text,
-     *   p_email text,
-     *   p_phone text
-     * )
-     */
     const { data, error } = await supabase.rpc(
       "submit_access_request_by_organization",
       {
@@ -330,7 +320,7 @@ export function PendingApprovalPage() {
             <div className="flex items-start gap-3">
               <LockKeyhole size={21} className="mt-0.5 shrink-0 text-paz-warning" />
 
-              <div>
+              <div className="min-w-0"> {/* Adicionado min-w-0 */}
                 <h2 className="font-bold text-paz-text">Acesso desativado</h2>
 
                 <p className="mt-1 text-sm leading-relaxed text-paz-muted">
@@ -343,7 +333,7 @@ export function PendingApprovalPage() {
         )}
 
         {isLoadingData ? (
-          <div className="mt-6 flex min-h-32 items-center justify-center gap-3 rounded-xl bg-paz-soft px-5 py-8 text-sm font-semibold text-paz-muted">
+          <div className="mt-6 flex min-h-32 items-center justify-center gap-3 rounded-xl bg-paz-soft px-5 py-8 text-sm font-semibold text-paz-muted text-center"> {/* Adicionado text-center */}
             <LoaderCircle size={20} className="animate-spin text-paz-primary" />
             Carregando informações...
           </div>
@@ -355,7 +345,7 @@ export function PendingApprovalPage() {
                 className="mt-0.5 shrink-0 text-paz-success"
               />
 
-              <div>
+              <div className="min-w-0"> {/* Adicionado min-w-0 */}
                 <h2 className="font-bold text-paz-text">
                   Solicitação enviada com sucesso
                 </h2>
@@ -369,6 +359,7 @@ export function PendingApprovalPage() {
           </div>
         ) : (
           <form className="mt-7 space-y-5" onSubmit={handleSubmit}>
+            {/* Campos do formulário */}
             <div>
               <label
                 htmlFor="fullName"

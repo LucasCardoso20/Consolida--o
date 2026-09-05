@@ -1,3 +1,4 @@
+// src/pages/VisitorDetailsPage.tsx
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
@@ -16,7 +17,7 @@ import {
   UserRound,
   Users,
   X,
-} from "lucide-react"; // <--- Removido AlertTriangle e MessageSquareText
+} from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useParams } from "react-router-dom";
@@ -429,7 +430,6 @@ export function VisitorDetailsPage() {
     setError(null);
 
     try {
-      // <--- CORREÇÃO AQUI: Passando o objeto Visitor atualizado
       const updatedVisitor = await updateVisitorProgress({
         ...visitor,
         [key]: !visitor[key],
@@ -474,7 +474,6 @@ export function VisitorDetailsPage() {
     setInteractionError(null);
 
     try {
-      // <--- CORREÇÃO AQUI: Passando um único objeto com visitorId e dados da interação
       const newInteraction = await createVisitorInteraction({
         visitorId: visitorId,
         interactionDate: data.interactionDate,
@@ -574,6 +573,7 @@ export function VisitorDetailsPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
+          {/* Seção de Informações Principais */}
           <section className="rounded-xl border border-paz-border bg-white p-5 shadow-sm sm:p-6">
             <div className="flex items-start gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-paz-soft text-paz-primary">
@@ -581,18 +581,15 @@ export function VisitorDetailsPage() {
               </div>
 
               <div>
-                <h3 className="font-bold text-paz-text">Dados pessoais</h3>
-
-                <p className="mt-1 text-sm text-paz-muted">
-                  Informações básicas do visitante.
-                </p>
+                <h3 className="font-bold text-paz-text">Informações principais</h3>
+                <p className="mt-1 text-sm text-paz-muted">Dados básicos do visitante.</p>
               </div>
             </div>
 
             <div className="mt-5 space-y-3 text-sm text-paz-text">
               <p className="flex items-center gap-2">
                 <CalendarDays size={16} className="shrink-0 text-paz-muted" />
-                Visitou em {formatDate(visitor.visitDate)}
+                Visitou em: {formatDate(visitor.visitDate)}
               </p>
 
               {visitor.phone && (
@@ -602,10 +599,18 @@ export function VisitorDetailsPage() {
                   <a
                     href={getWhatsAppUrl(visitor.phone, visitor.name)}
                     target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-paz-soft px-2 py-0.5 text-xs font-bold text-paz-primary transition hover:bg-paz-primary hover:text-white"
+                    rel="noopener noreferrer"
+                    className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700 transition hover:bg-green-200"
                   >
-                    <MessageCircle size={13} />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.486 5.236 3.486 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.89 9.884-.001 2.224.651 4.413 1.824 6.232l-.993 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.166-.173.199-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-1.754-1.577-2.925-3.511-3.272-4.099-.346-.587-.036-.906.113-1.054.139-.139.313-.297.47-.445.157-.149.208-.298.313-.497.105-.198.052-.372-.026-.521-.079-.149-.669-1.612-.916-2.207-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479c0 1.462 1.065 2.875 1.213 3.074.149.198 2.076 3.179 5.045 4.438 2.344.954 3.327.766 4.051.711.66-.05 1.758-.719 2.006-1.359.246-.639.246-1.186.172-1.359z" />
+                    </svg>
                     WhatsApp
                   </a>
                 </p>
@@ -620,15 +625,15 @@ export function VisitorDetailsPage() {
 
               {visitor.invitedBy && (
                 <p className="flex items-center gap-2">
-                  <UserRound size={16} className="shrink-0 text-paz-muted" />
-                  Convidado por {visitor.invitedBy}
+                  <Users size={16} className="shrink-0 text-paz-muted" />
+                  Convidado por: {visitor.invitedBy}
                 </p>
               )}
 
               {visitor.cellName && (
                 <p className="flex items-center gap-2">
                   <Users size={16} className="shrink-0 text-paz-muted" />
-                  Vinculado à célula {visitor.cellName}
+                  Célula: {visitor.cellName}
                 </p>
               )}
 
@@ -648,6 +653,7 @@ export function VisitorDetailsPage() {
             </div>
           </section>
 
+          {/* Seção de Próximo Contato */}
           <section className="mt-6 rounded-xl border border-paz-border bg-white p-5 shadow-sm sm:p-6">
             <div className="flex items-start gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-paz-soft text-paz-primary">
@@ -656,7 +662,6 @@ export function VisitorDetailsPage() {
 
               <div>
                 <h3 className="font-bold text-paz-text">Próximo contato</h3>
-
                 <p className="mt-1 text-sm text-paz-muted">
                   Defina quem fará o acompanhamento e qual é o próximo passo.
                 </p>
@@ -666,7 +671,7 @@ export function VisitorDetailsPage() {
             <div className="mt-5 space-y-3 text-sm text-paz-text">
               {visitor.nextContactDate || visitor.nextAction ? (
                 <>
-                  <p className="flex items-center gap-2">
+                  <p className="flex items-center gap-2 flex-wrap"> {/* Adicionado flex-wrap */}
                     <CalendarDays
                       size={16}
                       className="shrink-0 text-paz-muted"
@@ -716,6 +721,7 @@ export function VisitorDetailsPage() {
             </div>
           </section>
 
+          {/* Seção de Histórico de Acompanhamento */}
           <section className="mt-6 rounded-xl border border-paz-border bg-white p-5 shadow-sm sm:p-6">
             <div className="flex items-start gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-paz-soft text-paz-primary">
@@ -795,8 +801,8 @@ export function VisitorDetailsPage() {
                             </span>
                           </div>
 
-                          <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                            <div>
+                          <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5 flex-col sm:flex-row"> {/* Ajustado para mobile */}
+                            <div className="min-w-0"> {/* Adicionado min-w-0 */}
                               <p className="text-sm text-paz-text">
                                 <span className="font-bold">
                                   {interactionTypeLabels[
@@ -816,7 +822,7 @@ export function VisitorDetailsPage() {
                               )}
                             </div>
 
-                            <div className="whitespace-nowrap text-right text-sm text-paz-muted">
+                            <div className="whitespace-nowrap text-left sm:text-right text-sm text-paz-muted mt-2 sm:mt-0"> {/* Ajustado para mobile */}
                               <time dateTime={interaction.interactionDate}>
                                 {formatDate(interaction.interactionDate)}
                               </time>
@@ -832,6 +838,7 @@ export function VisitorDetailsPage() {
           </section>
         </div>
 
+        {/* Sidebar de Acompanhamento */}
         <aside>
           <section className="rounded-xl border border-paz-border bg-white p-5 shadow-sm sm:p-6">
             <div className="flex items-start gap-3">
@@ -897,6 +904,7 @@ export function VisitorDetailsPage() {
         </aside>
       </div>
 
+      {/* Modal de Edição do Visitante */}
       {isEditModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-end bg-paz-primary/20 p-0 backdrop-blur-[2px] sm:items-center sm:justify-center sm:p-4"
@@ -908,7 +916,7 @@ export function VisitorDetailsPage() {
             aria-labelledby="edit-visitor-title"
             className="max-h-[92dvh] w-full overflow-y-auto rounded-t-xl bg-white p-5 shadow-float sm:max-w-2xl sm:rounded-xl sm:p-6"
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex sticky top-0 bg-white z-10 items-start justify-between gap-4 pb-4"> {/* Adicionado sticky e pb-4 */}
               <div>
                 <p className="text-sm font-semibold text-paz-primary">
                   Atualização de cadastro
@@ -1132,6 +1140,7 @@ export function VisitorDetailsPage() {
           </div>
         </div>
       )}
+      {/* Modal de Registro de Interação */}
       {isInteractionModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-end bg-paz-primary/20 p-0 backdrop-blur-[2px] sm:items-center sm:justify-center sm:p-4"
@@ -1143,7 +1152,7 @@ export function VisitorDetailsPage() {
             aria-labelledby="interaction-form-title"
             className="max-h-[92dvh] w-full overflow-y-auto rounded-t-xl bg-white p-5 shadow-float sm:max-w-xl sm:rounded-xl sm:p-6"
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex sticky top-0 bg-white z-10 items-start justify-between gap-4 pb-4"> {/* Adicionado sticky e pb-4 */}
               <div>
                 <p className="text-sm font-semibold text-paz-primary">
                   Acompanhamento

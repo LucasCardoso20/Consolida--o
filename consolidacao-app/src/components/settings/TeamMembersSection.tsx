@@ -283,23 +283,23 @@ export function TeamMembersSection() {
   );
 
   return (
-    <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="mt-6 rounded-xl border border-paz-border bg-white p-5 shadow-panel sm:p-6"> {/* Ajustado rounded, border, shadow */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div className="flex items-start gap-3">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-paz-soft text-paz-primary"> {/* Ajustado bg, text */}
             <UsersRound size={22} />
           </div>
 
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand-700">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-paz-primary"> {/* Ajustado text */}
               Equipe
             </p>
 
-            <h3 className="mt-1 text-xl font-bold tracking-tight text-slate-900">
+            <h3 className="mt-1 text-xl font-bold tracking-tight text-paz-text"> {/* Ajustado text */}
               Membros e permissões
             </h3>
 
-            <p className="mt-1 text-sm leading-relaxed text-slate-600">
+            <p className="mt-1 text-sm leading-relaxed text-paz-muted"> {/* Ajustado text */}
               Gerencie os perfis e acessos dos Masters e Líderes da sua igreja.
             </p>
           </div>
@@ -309,7 +309,7 @@ export function TeamMembersSection() {
           type="button"
           onClick={() => void loadMembers(true)}
           disabled={isLoading || isRefreshing}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-paz-border bg-white px-3 py-2 text-sm font-bold text-paz-muted transition hover:bg-paz-soft disabled:cursor-not-allowed disabled:opacity-60" // Ajustado border, text, hover
         >
           <RefreshCw
             size={17}
@@ -322,7 +322,7 @@ export function TeamMembersSection() {
       {errorMessage ? (
         <div
           role="alert"
-          className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-relaxed text-red-800"
+          className="mt-5 rounded-xl border border-paz-error bg-paz-error/10 p-4 text-sm leading-relaxed text-paz-error" // Ajustado border, bg, text
         >
           <strong>Não foi possível concluir a ação.</strong>
           <p className="mt-1">{errorMessage}</p>
@@ -330,26 +330,26 @@ export function TeamMembersSection() {
       ) : null}
 
       {successMessage ? (
-        <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-relaxed text-emerald-800">
+        <div className="mt-5 rounded-xl border border-paz-success bg-paz-success/10 p-4 text-sm leading-relaxed text-paz-success"> {/* Ajustado border, bg, text */}
           <strong>Ação concluída.</strong>
           <p className="mt-1">{successMessage}</p>
         </div>
       ) : null}
 
       {isLoading ? (
-        <div className="mt-6 flex items-center justify-center gap-3 rounded-2xl bg-slate-50 px-4 py-10 text-sm font-semibold text-slate-500">
-          <LoaderCircle size={20} className="animate-spin text-brand-700" />
+        <div className="mt-6 flex items-center justify-center gap-3 rounded-xl bg-paz-soft px-4 py-10 text-sm font-semibold text-paz-muted"> {/* Ajustado rounded, bg, text */}
+          <LoaderCircle size={20} className="animate-spin text-paz-primary" /> {/* Ajustado text */}
           Carregando membros da equipe...
         </div>
       ) : members.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
-          <UserRound className="mx-auto text-slate-400" size={26} />
+        <div className="mt-6 rounded-xl border border-dashed border-paz-border bg-paz-soft px-5 py-10 text-center"> {/* Ajustado rounded, border, bg */}
+          <UserRound className="mx-auto text-paz-muted" size={26} /> {/* Ajustado text */}
 
-          <h4 className="mt-4 font-bold text-slate-800">
+          <h4 className="mt-4 font-bold text-paz-text"> {/* Ajustado text */}
             Nenhum membro encontrado
           </h4>
 
-          <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-slate-500">
+          <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-paz-muted"> {/* Ajustado text */}
             Os usuários aprovados como Master ou Líder aparecerão aqui.
           </p>
         </div>
@@ -357,15 +357,15 @@ export function TeamMembersSection() {
         <div className="mt-6 space-y-7">
           <div>
             <div className="mb-3 flex items-center gap-2">
-              <CheckCircle2 size={18} className="text-emerald-600" />
+              <CheckCircle2 size={18} className="text-paz-success" /> {/* Ajustado text */}
 
-              <h4 className="font-bold text-slate-800">
+              <h4 className="font-bold text-paz-text"> {/* Ajustado text */}
                 Acessos ativos ({activeMembers.length})
               </h4>
             </div>
 
             {activeMembers.length === 0 ? (
-              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              <p className="rounded-xl bg-paz-soft px-4 py-3 text-sm text-paz-muted"> {/* Ajustado bg, text */}
                 Nenhum membro ativo no momento.
               </p>
             ) : (
@@ -388,15 +388,15 @@ export function TeamMembersSection() {
 
           <div>
             <div className="mb-3 flex items-center gap-2">
-              <CircleOff size={18} className="text-amber-600" />
+              <CircleOff size={18} className="text-paz-warning" /> {/* Ajustado text */}
 
-              <h4 className="font-bold text-slate-800">
+              <h4 className="font-bold text-paz-text"> {/* Ajustado text */}
                 Acessos inativos ({inactiveMembers.length})
               </h4>
             </div>
 
             {inactiveMembers.length === 0 ? (
-              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              <p className="rounded-xl bg-paz-soft px-4 py-3 text-sm text-paz-muted"> {/* Ajustado bg, text */}
                 Nenhum membro inativo no momento.
               </p>
             ) : (
@@ -436,14 +436,14 @@ function MemberCard({
   const hasRoleChanged = selectedRole !== member.role;
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+    <article className="rounded-xl border border-paz-border bg-white p-4 sm:p-5"> {/* Ajustado rounded, border */}
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <div
             className={`flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${
               isActive
-                ? "bg-brand-50 text-brand-700"
-                : "bg-slate-100 text-slate-500"
+                ? "bg-paz-soft text-paz-primary" // Ajustado bg, text
+                : "bg-paz-soft text-paz-muted" // Ajustado bg, text
             }`}
           >
             {getInitials(member.full_name)}
@@ -451,12 +451,12 @@ function MemberCard({
 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h5 className="font-bold text-slate-900">
+              <h5 className="font-bold text-paz-text"> {/* Ajustado text */}
                 {member.full_name || "Nome não informado"}
               </h5>
 
               {isCurrentUser ? (
-                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">
+                <span className="rounded-full bg-paz-soft px-2 py-0.5 text-xs font-bold text-paz-primary"> {/* Ajustado bg, text */}
                   Você
                 </span>
               ) : null}
@@ -466,8 +466,8 @@ function MemberCard({
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
                   member.role === "MASTER"
-                    ? "bg-violet-50 text-violet-700"
-                    : "bg-sky-50 text-sky-700"
+                    ? "bg-paz-soft text-paz-primary" // Ajustado bg, text
+                    : "bg-paz-soft text-paz-primary" // Ajustado bg, text
                 }`}
               >
                 {member.role === "MASTER" ? (
@@ -481,25 +481,25 @@ function MemberCard({
               <span
                 className={`rounded-full px-2.5 py-1 text-xs font-bold ${
                   isActive
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-amber-50 text-amber-700"
+                    ? "bg-paz-success/10 text-paz-success" // Ajustado bg, text
+                    : "bg-paz-warning/10 text-paz-warning" // Ajustado bg, text
                 }`}
               >
                 {isActive ? "Ativo" : "Inativo"}
               </span>
             </div>
 
-            <div className="mt-3 space-y-1 text-sm text-slate-600">
+            <div className="mt-3 space-y-1 text-sm text-paz-muted"> {/* Ajustado text */}
               {member.email ? (
                 <p className="flex items-center gap-2 break-all">
-                  <Mail size={15} className="shrink-0 text-slate-400" />
+                  <Mail size={15} className="shrink-0 text-paz-muted" /> {/* Ajustado text */}
                   {member.email}
                 </p>
               ) : null}
 
               {member.phone ? (
                 <p className="flex items-center gap-2">
-                  <Phone size={15} className="shrink-0 text-slate-400" />
+                  <Phone size={15} className="shrink-0 text-paz-muted" /> {/* Ajustado text */}
                   {member.phone}
                 </p>
               ) : null}
@@ -508,7 +508,7 @@ function MemberCard({
         </div>
 
         {isCurrentUser ? (
-          <p className="text-sm font-medium text-slate-400">
+          <p className="text-sm font-medium text-paz-muted"> {/* Ajustado text */}
             Sua própria conta não pode ser alterada aqui.
           </p>
         ) : (
@@ -516,7 +516,7 @@ function MemberCard({
             <div className="relative min-w-36">
               <ShieldCheck
                 size={16}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-700"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-paz-primary" // Ajustado text
               />
 
               <select
@@ -526,7 +526,7 @@ function MemberCard({
                 onChange={(event) =>
                   onRoleChange(member.id, event.target.value as UserRole)
                 }
-                className="w-full appearance-none rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-9 text-sm font-bold text-slate-700 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                className="w-full appearance-none rounded-xl border border-paz-border bg-white py-2.5 pl-9 pr-9 text-sm font-bold text-paz-text outline-none transition focus:border-paz-primary focus:ring-4 focus:ring-paz-soft disabled:cursor-not-allowed disabled:bg-paz-soft" // Ajustado border, text, focus, disabled
               >
                 <option value="LEADER">Líder</option>
                 <option value="MASTER">Master</option>
@@ -534,7 +534,7 @@ function MemberCard({
 
               <ChevronDown
                 size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-paz-muted" // Ajustado text
               />
             </div>
 
@@ -543,7 +543,7 @@ function MemberCard({
                 type="button"
                 onClick={() => void onSaveRole(member)}
                 disabled={isProcessing}
-                className="inline-flex min-w-28 items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-w-28 items-center justify-center gap-2 rounded-xl bg-paz-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-paz-hover disabled:cursor-not-allowed disabled:opacity-60" // Ajustado bg, hover
               >
                 {isProcessing ? (
                   <LoaderCircle size={17} className="animate-spin" />
@@ -560,8 +560,8 @@ function MemberCard({
               disabled={isProcessing}
               className={`inline-flex min-w-32 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${
                 isActive
-                  ? "border border-red-200 bg-white text-red-700 hover:bg-red-50"
-                  : "bg-emerald-600 text-white hover:bg-emerald-700"
+                  ? "border border-paz-error bg-white text-paz-error hover:bg-paz-soft" // Ajustado border, bg, text, hover
+                  : "bg-paz-success text-white hover:bg-paz-primary" // Ajustado bg, hover
               }`}
             >
               {isProcessing ? (

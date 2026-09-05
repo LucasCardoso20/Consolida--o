@@ -32,15 +32,15 @@ export function LogoutButton({ compact = false }: LogoutButtonProps) {
   if (compact) {
     return (
       <button
-        type="button"
-        onClick={handleLogout}
+      type="button"
+       onClick={handleLogout}
         disabled={isLoggingOut}
-        aria-label="Sair da conta"
+        aria-label="Menu do usuário" // Alterado para corresponder ao design system
         title="Sair da conta"
-        className="flex size-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        <LogOut size={20} />
-      </button>
+        className="ml-auto rounded-md p-1.5 text-paz-muted transition hover:bg-paz-soft hover:text-paz-primary"
+        >
+            <LogOut size={16} strokeWidth={2} />
+          </button>        
     );
   }
 
@@ -49,11 +49,9 @@ export function LogoutButton({ compact = false }: LogoutButtonProps) {
       type="button"
       onClick={handleLogout}
       disabled={isLoggingOut}
-      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 transition hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+      className="ml-auto rounded-md p-1.5 text-paz-muted transition hover:bg-paz-soft hover:text-paz-primary"
     >
       <LogOut size={19} />
-
-      <span>{isLoggingOut ? "Saindo..." : "Sair da conta"}</span>
     </button>
   );
 }

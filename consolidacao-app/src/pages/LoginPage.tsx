@@ -102,21 +102,21 @@ export function LoginPage() {
   const isLoginMode = mode === "LOGIN";
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-brand-50 p-4">
-      <section className="w-full max-w-md rounded-2xl border border-brand-100 bg-white p-6 shadow-xl shadow-brand-900/5 sm:p-8">
-        <div className="flex size-12 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
+    <main className="flex min-h-screen items-center justify-center bg-paz-background p-4"> {/* Ajustado bg */}
+      <section className="w-full max-w-md rounded-xl border border-paz-border bg-white p-6 shadow-xl shadow-paz-primary/5 sm:p-8"> {/* Ajustado rounded, border, shadow */}
+        <div className="flex size-12 items-center justify-center rounded-xl bg-paz-primary text-white shadow-sm"> {/* Ajustado rounded, bg */}
           <HeartHandshake size={26} />
         </div>
 
-        <p className="mt-6 text-sm font-semibold text-brand-700">
+        <p className="mt-6 text-sm font-semibold text-paz-primary"> {/* Ajustado text */}
           Equipe de acolhimento
         </p>
 
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-paz-text"> {/* Ajustado text */}
           {isLoginMode ? "Entre na Consolidação" : "Criar conta de líder"}
         </h1>
 
-        <p className="mt-2 text-sm leading-relaxed text-slate-500">
+        <p className="mt-2 text-sm leading-relaxed text-paz-muted"> {/* Ajustado text */}
           {isLoginMode
             ? "Acesse para registrar e acompanhar cada visitante."
             : "Crie seu acesso para colaborar com a equipe de consolidação."}
@@ -191,19 +191,19 @@ export function LoginPage() {
         )}
 
         {feedback && (
-          <p className="mt-5 rounded-xl border border-brand-100 bg-brand-50 p-3 text-sm leading-relaxed text-brand-800">
+          <p className="mt-5 rounded-xl border border-paz-border bg-paz-soft p-3 text-sm leading-relaxed text-paz-text"> {/* Ajustado rounded, border, bg, text */}
             {feedback}
           </p>
         )}
 
-        <div className="mt-7 border-t border-slate-100 pt-6 text-center">
+        <div className="mt-7 border-t border-paz-border pt-6 text-center"> {/* Ajustado border */}
           <button
             type="button"
             onClick={() => {
               setFeedback(null);
               setMode(isLoginMode ? "REGISTER" : "LOGIN");
             }}
-            className="text-sm font-bold text-brand-700 transition hover:text-brand-900"
+            className="text-sm font-bold text-paz-primary transition hover:text-paz-hover"
           >
             {isLoginMode
               ? "Ainda não tenho uma conta"
@@ -233,7 +233,7 @@ function InputField({
 }: InputFieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-slate-700">
+      <span className="mb-2 block text-sm font-bold text-paz-text"> {/* Ajustado text */}
         {label}
       </span>
 
@@ -242,15 +242,15 @@ function InputField({
         autoComplete={autoComplete}
         placeholder={placeholder}
         {...registration}
-        className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-4 ${
+        className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-paz-text outline-none transition placeholder:text-paz-muted focus:ring-4 ${ // Ajustado rounded, text, placeholder
           error
-            ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-            : "border-slate-200 focus:border-brand-500 focus:ring-brand-100"
+            ? "border-paz-error focus:border-paz-error focus:ring-paz-error/20" // Ajustado border, focus, ring
+            : "border-paz-border focus:border-paz-primary focus:ring-paz-soft" // Ajustado border, focus, ring
         }`}
       />
 
       {error && (
-        <span className="mt-1.5 block text-xs font-medium text-red-600">
+        <span className="mt-1.5 block text-xs font-medium text-paz-error"> {/* Ajustado text */}
           {error}
         </span>
       )}
@@ -271,7 +271,7 @@ function SubmitButton({
     <button
       type="submit"
       disabled={isLoading}
-      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover disabled:cursor-not-allowed disabled:opacity-60" // Ajustado rounded, bg, hover
     >
       {isLoading ? (
         <>

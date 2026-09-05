@@ -10,9 +10,9 @@ export function AccessGuard() {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-bold text-slate-600 shadow-sm">
-          <LoaderCircle size={20} className="animate-spin text-brand-700" />
+      <main className="flex min-h-screen items-center justify-center bg-paz-background px-4"> {/* Ajustado bg */}
+        <div className="flex items-center gap-3 rounded-xl border border-paz-border bg-white px-5 py-4 text-sm font-bold text-paz-muted shadow-sm"> {/* Ajustado rounded, border, text */}
+          <LoaderCircle size={20} className="animate-spin text-paz-primary" /> {/* Ajustado text */}
           Verificando seu acesso...
         </div>
       </main>

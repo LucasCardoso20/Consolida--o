@@ -218,23 +218,23 @@ export function AccessManagementSection() {
   }
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-xl border border-paz-border bg-white p-5 shadow-panel sm:p-6"> {/* Ajustado border, shadow */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div className="flex items-start gap-3">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-paz-soft text-paz-primary"> {/* Ajustado bg, text */}
             <UsersRound size={22} />
           </div>
 
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand-700">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-paz-primary"> {/* Ajustado text */}
               Administração
             </p>
 
-            <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">
+            <h2 className="mt-1 text-xl font-bold tracking-tight text-paz-text"> {/* Ajustado text */}
               Solicitações de acesso
             </h2>
 
-            <p className="mt-1 text-sm leading-relaxed text-slate-600">
+            <p className="mt-1 text-sm leading-relaxed text-paz-muted"> {/* Ajustado text */}
               Analise novos cadastros e defina quem poderá acessar a
               organização.
             </p>
@@ -245,7 +245,7 @@ export function AccessManagementSection() {
           type="button"
           onClick={() => void loadRequests(true)}
           disabled={isLoading || isRefreshing}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-paz-border bg-white px-3 py-2 text-sm font-bold text-paz-muted transition hover:bg-paz-soft disabled:cursor-not-allowed disabled:opacity-60" // Ajustado border, text, hover
         >
           <RefreshCw
             size={17}
@@ -258,7 +258,7 @@ export function AccessManagementSection() {
       {errorMessage ? (
         <div
           role="alert"
-          className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-relaxed text-red-800"
+          className="mt-5 rounded-xl border border-paz-error bg-paz-error/10 p-4 text-sm leading-relaxed text-paz-error" // Ajustado border, bg, text
         >
           <strong>Ocorreu um problema.</strong>
           <p className="mt-1">{errorMessage}</p>
@@ -266,21 +266,21 @@ export function AccessManagementSection() {
       ) : null}
 
       {isLoading ? (
-        <div className="mt-6 flex items-center justify-center gap-3 rounded-2xl bg-slate-50 px-4 py-10 text-sm font-semibold text-slate-500">
-          <LoaderCircle size={20} className="animate-spin text-brand-700" />
+        <div className="mt-6 flex items-center justify-center gap-3 rounded-xl bg-paz-soft px-4 py-10 text-sm font-semibold text-paz-muted"> {/* Ajustado rounded, bg, text */}
+          <LoaderCircle size={20} className="animate-spin text-paz-primary" /> {/* Ajustado text */}
           Carregando solicitações...
         </div>
       ) : requests.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-white text-slate-400 shadow-sm">
+        <div className="mt-6 rounded-xl border border-dashed border-paz-border bg-paz-soft px-5 py-10 text-center"> {/* Ajustado rounded, border, bg */}
+          <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-white text-paz-muted shadow-sm"> {/* Ajustado text */}
             <UserCheck size={23} />
           </div>
 
-          <h3 className="mt-4 font-bold text-slate-800">
+          <h3 className="mt-4 font-bold text-paz-text"> {/* Ajustado text */}
             Nenhuma solicitação pendente
           </h3>
 
-          <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-slate-500">
+          <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-paz-muted"> {/* Ajustado text */}
             Quando alguém criar uma conta e selecionar esta igreja, a
             solicitação aparecerá aqui para aprovação.
           </p>
@@ -288,7 +288,7 @@ export function AccessManagementSection() {
       ) : (
         <div className="mt-6 space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-slate-600">
+            <p className="text-sm font-semibold text-paz-muted"> {/* Ajustado text */}
               {requests.length === 1
                 ? "1 solicitação aguardando análise"
                 : `${requests.length} solicitações aguardando análise`}
@@ -302,25 +302,25 @@ export function AccessManagementSection() {
             return (
               <article
                 key={request.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 transition sm:p-5"
+                className="rounded-xl border border-paz-border bg-white p-4 transition sm:p-5" // Ajustado rounded, border
               >
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex min-w-0 items-start gap-3">
-                    <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-extrabold text-brand-700">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-paz-soft text-sm font-extrabold text-paz-primary"> {/* Ajustado bg, text */}
                       {getInitials(request.requester_name)}
                     </div>
 
                     <div className="min-w-0">
-                      <h3 className="truncate font-bold text-slate-900">
+                      <h3 className="truncate font-bold text-paz-text"> {/* Ajustado text */}
                         {request.requester_name || "Nome não informado"}
                       </h3>
 
-                      <div className="mt-2 space-y-1 text-sm text-slate-600">
+                      <div className="mt-2 space-y-1 text-sm text-paz-muted"> {/* Ajustado text */}
                         {request.requester_email ? (
                           <p className="flex items-center gap-2 break-all">
                             <Mail
                               size={15}
-                              className="shrink-0 text-slate-400"
+                              className="shrink-0 text-paz-muted" // Ajustado text
                             />
                             {request.requester_email}
                           </p>
@@ -330,14 +330,14 @@ export function AccessManagementSection() {
                           <p className="flex items-center gap-2">
                             <Phone
                               size={15}
-                              className="shrink-0 text-slate-400"
+                              className="shrink-0 text-paz-muted" // Ajustado text
                             />
                             {request.requester_phone}
                           </p>
                         ) : null}
                       </div>
 
-                      <p className="mt-3 text-xs font-medium text-slate-400">
+                      <p className="mt-3 text-xs font-medium text-paz-muted"> {/* Ajustado text */}
                         Solicitação enviada em {formatDate(request.created_at)}
                       </p>
                     </div>
@@ -347,7 +347,7 @@ export function AccessManagementSection() {
                     <div className="relative min-w-40">
                       <ShieldCheck
                         size={16}
-                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-700"
+                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-paz-primary" // Ajustado text
                       />
 
                       <select
@@ -360,7 +360,7 @@ export function AccessManagementSection() {
                             [request.id]: event.target.value as UserRole,
                           }))
                         }
-                        className="w-full appearance-none rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-9 text-sm font-bold text-slate-700 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                        className="w-full appearance-none rounded-xl border border-paz-border bg-white py-2.5 pl-9 pr-9 text-sm font-bold text-paz-text outline-none transition focus:border-paz-primary focus:ring-4 focus:ring-paz-soft disabled:cursor-not-allowed disabled:bg-paz-soft" // Ajustado border, text, focus, disabled
                       >
                         <option value="LEADER">Líder</option>
                         <option value="MASTER">Master</option>
@@ -368,7 +368,7 @@ export function AccessManagementSection() {
 
                       <ChevronDown
                         size={16}
-                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-paz-muted" // Ajustado text
                       />
                     </div>
 
@@ -376,7 +376,7 @@ export function AccessManagementSection() {
                       type="button"
                       onClick={() => void handleApprove(request.id)}
                       disabled={isProcessing}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-paz-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-paz-hover disabled:cursor-not-allowed disabled:opacity-60" // Ajustado bg, hover
                     >
                       {isProcessing ? (
                         <LoaderCircle size={17} className="animate-spin" />
@@ -394,7 +394,7 @@ export function AccessManagementSection() {
                       aria-label={`Recusar solicitação de ${
                         request.requester_name ?? "usuário"
                       }`}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-3 py-2.5 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-paz-error bg-white px-3 py-2.5 text-sm font-bold text-paz-error transition hover:bg-paz-soft disabled:cursor-not-allowed disabled:opacity-60" // Ajustado border, text, hover
                     >
                       <CircleX size={18} />
                       <span className="sm:hidden">Recusar</span>

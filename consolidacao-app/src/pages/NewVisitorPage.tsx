@@ -17,35 +17,36 @@ import { createVisitor, getCells } from "../lib/visitors";
 import type { Cell } from "../types/visitor";
 import type { ReactNode } from "react";
 import { LeaderSelect } from "../components/visitors/LeaderSelect";
+
+// Esquema de validação para o formulário de visitante
 const visitorSchema = z.object({
   name: z
     .string()
     .trim()
     .min(3, "Informe o nome completo do visitante.")
     .max(120, "O nome pode ter no máximo 120 caracteres."),
-
-  phone: z.string().trim().max(20, "Telefone inválido.").optional(),
-address: z
-  .string()
-  .trim()
-  .max(250, "O endereço pode ter no máximo 250 caracteres.")
-  .optional(),
+  phone: z
+    .string()
+    .trim()
+    .max(20, "O telefone pode ter no máximo 20 caracteres.")
+    .optional(),
+  address: z
+    .string()
+    .trim()
+    .max(250, "O endereço pode ter no máximo 250 caracteres.")
+    .optional(),
   invitedBy: z
     .string()
     .trim()
-    .max(120, "O nome pode ter no máximo 120 caracteres.")
+    .max(120, "O nome do convidante pode ter no máximo 120 caracteres.")
     .optional(),
-
   cellId: z.string().optional(),
-
   visitDate: z.string().min(1, "Informe a data da visita."),
-
   notes: z
     .string()
     .trim()
-    .max(1000, "As observações podem ter no máximo 1000 caracteres.")
+    .max(1000, "As observações podem ter no máximo 1.000 caracteres.")
     .optional(),
-
   receivedAtService: z.boolean(),
   receivedGift: z.boolean(),
   phoneConfirmed: z.boolean(),
@@ -103,72 +104,72 @@ export function NewVisitorPage() {
   }, []);
 
   async function onSubmit(data: VisitorFormData) {
-  setServerError(null);
+    setServerError(null);
 
-  // O LeaderSelect usa o state responsibleLeaderId.
-  // Portanto, validamos esse valor antes de salvar.
-  if (!responsibleLeaderId) {
-    setServerError("Selecione o líder responsável pelo visitante.");
-    return;
+    // O LeaderSelect usa o state responsibleLeaderId.
+    // Portanto, validamos esse valor antes de salvar.
+    if (!responsibleLeaderId) {
+      setServerError("Selecione o líder responsável pelo visitante.");
+      return;
+    }
+
+    try {
+      await createVisitor({
+        name: data.name,
+        phone: data.phone || null,
+        address: data.address || null,
+        invitedBy: data.invitedBy || null,
+        cellId: data.cellId || null,
+        visitDate: data.visitDate,
+        notes: data.notes || null,
+        receivedAtService: data.receivedAtService,
+        receivedGift: data.receivedGift,
+        phoneConfirmed: data.phoneConfirmed,
+
+        // NOVO CAMPO:
+        responsibleLeaderId: responsibleLeaderId,
+      });
+
+      // Limpa o líder selecionado antes de sair da página.
+      setResponsibleLeaderId("");
+
+      navigate("/visitantes");
+    } catch (error) {
+      setServerError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar o visitante.",
+      );
+    }
   }
-
-  try {
-    await createVisitor({
-      name: data.name,
-      phone: data.phone || null,
-      address: data.address || null,
-      invitedBy: data.invitedBy || null,
-      cellId: data.cellId || null,
-      visitDate: data.visitDate,
-      notes: data.notes || null,
-      receivedAtService: data.receivedAtService,
-      receivedGift: data.receivedGift,
-      phoneConfirmed: data.phoneConfirmed,
-
-      // NOVO CAMPO:
-      responsibleLeaderId: responsibleLeaderId,
-    });
-
-    // Limpa o líder selecionado antes de sair da página.
-    setResponsibleLeaderId("");
-
-    navigate("/visitantes");
-  } catch (error) {
-    setServerError(
-      error instanceof Error
-        ? error.message
-        : "Não foi possível salvar o visitante.",
-    );
-  }
-}
 
   return (
     <section className="mx-auto max-w-2xl">
       <div className="mb-6">
         <Link
           to="/visitantes"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-brand-700"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-paz-muted transition hover:text-paz-primary" // Ajustado text, hover
         >
           <ArrowLeft size={18} />
           Voltar para visitantes
         </Link>
 
-        <p className="mt-5 text-sm font-semibold text-brand-700">
+        <p className="mt-5 text-sm font-semibold text-paz-primary"> {/* Ajustado text */}
           Novo cadastro
         </p>
 
-        <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+        <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text sm:text-3xl"> {/* Ajustado text */}
           Cadastrar visitante
         </h2>
 
-        <p className="mt-2 text-sm leading-relaxed text-slate-500">
+        <p className="mt-2 text-sm leading-relaxed text-paz-muted"> {/* Ajustado text */}
           Registre os dados principais para que ninguém fique sem acompanhamento.
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        className="rounded-xl border border-paz-border bg-white p-5 shadow-sm sm:p-6" // Ajustado rounded, border
       >
         <div className="space-y-5">
           <FormField label="Nome completo" required error={errors.name?.message}>
@@ -181,40 +182,41 @@ export function NewVisitorPage() {
             />
           </FormField>
 
-         <div className="grid gap-5 sm:grid-cols-2">
-  <FormField label="Telefone / WhatsApp" error={errors.phone?.message}>
-    <input
-      {...register("phone")}
-      inputMode="tel"
-      autoComplete="tel"
-      placeholder="(11) 99999-9999"
-      className={inputClassName(Boolean(errors.phone))}
-    />
-  </FormField>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <FormField label="Telefone / WhatsApp" error={errors.phone?.message}>
+              <input
+                {...register("phone")}
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="(11) 99999-9999"
+                className={inputClassName(Boolean(errors.phone))}
+              />
+            </FormField>
 
-  <FormField label="Data da visita" required error={errors.visitDate?.message}>
-    <input
-      {...register("visitDate")}
-      type="date"
-      className={inputClassName(Boolean(errors.visitDate))}
-    />
-  </FormField>
+            <FormField label="Data da visita" required error={errors.visitDate?.message}>
+              <input
+                {...register("visitDate")}
+                type="date"
+                className={inputClassName(Boolean(errors.visitDate))}
+              />
+            </FormField>
 
-  <FormField label="Endereço" error={errors.address?.message}>
-    <input
-      {...register("address")}
-      autoComplete="street-address"
-      placeholder="Ex.: Rua das Flores, 123 — Bairro Centro"
-      className={inputClassName(Boolean(errors.address))}
-    />
-  </FormField>
-</div>
+            <FormField label="Endereço" error={errors.address?.message}>
+              <input
+                {...register("address")}
+                autoComplete="street-address"
+                placeholder="Ex.: Rua das Flores, 123 — Bairro Centro"
+                className={inputClassName(Boolean(errors.address))}
+              />
+            </FormField>
+          </div>
 
-<LeaderSelect
-  value={responsibleLeaderId}
-  onChange={setResponsibleLeaderId}
-  disabled={isSubmitting}
-/>
+          <LeaderSelect
+            value={responsibleLeaderId}
+            onChange={setResponsibleLeaderId}
+            disabled={isSubmitting}
+            error={serverError} // Passando o erro para o LeaderSelect
+          />
 
           <div className="grid gap-5 sm:grid-cols-2">
             <FormField label="Convidado por" error={errors.invitedBy?.message}>
@@ -229,7 +231,7 @@ export function NewVisitorPage() {
               <select
                 {...register("cellId")}
                 disabled={loadingCells}
-                className={inputClassName(false)}
+                className={inputClassName(false)} // Mantido false para não aplicar estilo de erro padrão
               >
                 <option value="">
                   {loadingCells
@@ -257,15 +259,15 @@ export function NewVisitorPage() {
           </FormField>
         </div>
 
-        <div className="mt-8 border-t border-slate-100 pt-6">
+        <div className="mt-8 border-t border-paz-border pt-6"> {/* Ajustado border */}
           <div className="flex items-start gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-paz-soft text-paz-primary"> {/* Ajustado rounded, bg, text */}
               <CheckCircle2 size={20} />
             </div>
 
             <div>
-              <h3 className="font-bold text-slate-900">Recepção no culto</h3>
-              <p className="mt-1 text-sm text-slate-500">
+              <h3 className="font-bold text-paz-text">Recepção no culto</h3> {/* Ajustado text */}
+              <p className="mt-1 text-sm text-paz-muted"> {/* Ajustado text */}
                 Marque as etapas que já foram realizadas.
               </p>
             </div>
@@ -296,15 +298,15 @@ export function NewVisitorPage() {
         </div>
 
         {serverError && (
-          <p className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+          <p className="mt-6 rounded-xl border border-paz-error bg-paz-error/10 p-3 text-sm font-medium text-paz-error"> {/* Ajustado rounded, border, bg, text */}
             {serverError}
           </p>
         )}
 
-        <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
+        <div className="mt-8 flex flex-col-reverse gap-3 border-t border-paz-border pt-6 sm:flex-row sm:justify-end"> {/* Ajustado border */}
           <Link
             to="/visitantes"
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-xl border border-paz-border px-4 py-3 text-sm font-bold text-paz-muted transition hover:bg-paz-soft" // Ajustado rounded, border, text, hover
           >
             Cancelar
           </Link>
@@ -312,7 +314,7 @@ export function NewVisitorPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-paz-primary px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover disabled:cursor-not-allowed disabled:opacity-60" // Ajustado rounded, bg, hover
           >
             {isSubmitting ? (
               <>
@@ -342,15 +344,15 @@ type FormFieldProps = {
 function FormField({ label, children, required = false, error }: FormFieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-slate-700">
+      <span className="mb-2 block text-sm font-bold text-paz-text"> {/* Ajustado text */}
         {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
+        {required && <span className="ml-1 text-paz-error">*</span>} {/* Ajustado text */}
       </span>
 
       {children}
 
       {error && (
-        <span className="mt-1.5 block text-xs font-medium text-red-600">
+        <span className="mt-1.5 block text-xs font-medium text-paz-error"> {/* Ajustado text */}
           {error}
         </span>
       )}
@@ -374,18 +376,18 @@ function CheckboxField({
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-brand-300 hover:bg-brand-50/40"
+      className="flex cursor-pointer items-start gap-3 rounded-xl border border-paz-border p-4 transition hover:border-paz-primary hover:bg-paz-soft" // Ajustado rounded, border, hover
     >
       <input
         id={id}
         type="checkbox"
         {...registration}
-        className="mt-0.5 size-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+        className="mt-0.5 size-5 rounded border-paz-border text-paz-primary focus:ring-paz-soft" // Ajustado rounded, border, text, focus
       />
 
       <span>
-        <span className="block text-sm font-bold text-slate-800">{label}</span>
-        <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
+        <span className="block text-sm font-bold text-paz-text">{label}</span> {/* Ajustado text */}
+        <span className="mt-0.5 block text-xs leading-relaxed text-paz-muted"> {/* Ajustado text */}
           {description}
         </span>
       </span>
@@ -394,9 +396,9 @@ function CheckboxField({
 }
 
 function inputClassName(hasError: boolean) {
-  return `w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-4 ${
+  return `w-full rounded-xl border bg-white px-4 py-3 text-sm text-paz-text outline-none transition placeholder:text-paz-muted focus:ring-4 ${ // Ajustado rounded, text, placeholder
     hasError
-      ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-      : "border-slate-200 focus:border-brand-500 focus:ring-brand-100"
+      ? "border-paz-error focus:border-paz-error focus:ring-paz-error/20" // Ajustado border, focus, ring
+      : "border-paz-border focus:border-paz-primary focus:ring-paz-soft" // Ajustado border, focus, ring
   }`;
 }

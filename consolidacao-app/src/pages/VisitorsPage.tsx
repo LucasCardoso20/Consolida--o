@@ -1,11 +1,13 @@
 import {
   CheckCircle2,
   Clock3,
-  MessageCircle,
+  MessageCircle, // Mantido para o telefone, se for o ícone desejado
   Plus,
   Search,
   UserRound,
   Users,
+  Phone, // Adicionado para o telefone, se for o ícone desejado
+  UserRoundPlus, // Adicionado para "Convidado por"
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -14,6 +16,7 @@ import { getVisitors } from "../lib/visitors";
 import type { Visitor } from "../types/visitor";
 import { useVisitorsRealtime } from "../hooks/useVisitorsRealtime";
 
+// --- Funções Auxiliares (mantidas como fornecido) ---
 function formatDate(date: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -26,7 +29,7 @@ function getVisitorStatus(visitor: Visitor) {
   if (visitor.followUpCompleted) {
     return {
       label: "Concluído",
-      className: "bg-brand-50 text-brand-700",
+      className: "bg-paz-success/10 text-paz-success", // Aplicado design system
       icon: CheckCircle2,
     };
   }
@@ -34,7 +37,7 @@ function getVisitorStatus(visitor: Visitor) {
   if (visitor.firstContactMade) {
     return {
       label: "Em acompanhamento",
-      className: "bg-blue-50 text-blue-700",
+      className: "bg-paz-info/10 text-paz-info", // Aplicado design system
       icon: CheckCircle2,
     };
   }
@@ -42,51 +45,49 @@ function getVisitorStatus(visitor: Visitor) {
   if (visitor.phone) {
     return {
       label: "Contato pendente",
-      className: "bg-amber-50 text-amber-700",
+      className: "bg-paz-warning/10 text-paz-warning", // Aplicado design system
       icon: Clock3,
     };
   }
 
   return {
     label: "Novo visitante",
-    className: "bg-slate-100 text-slate-600",
+    className: "bg-paz-soft text-paz-muted", // Aplicado design system
     icon: UserRound,
   };
 }
 
+// --- Componente VisitorsPage ---
 export function VisitorsPage() {
   const [search, setSearch] = useState("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
-
   const [isLoading, setIsLoading] = useState(true);
-const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-const loadVisitors = useCallback(async () => {
-  try {
+  const loadVisitors = useCallback(async () => {
+    setIsLoading(true);
     setError(null);
+    try {
+      const fetchedVisitors = await getVisitors();
+      setVisitors(fetchedVisitors);
+    } catch (err) {
+      console.error("Failed to load visitors:", err);
+      setError("Não foi possível carregar os visitantes.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-    const loadedVisitors = await getVisitors();
-    setVisitors(loadedVisitors);
-  } catch (loadError) {
-    setError(
-      loadError instanceof Error
-        ? loadError.message
-        : "Não foi possível carregar os visitantes.",
-    );
-  } finally {
-    setIsLoading(false);
-  }
-}, []);
-
-useEffect(() => {
-  void loadVisitors();
-}, [loadVisitors]);
-
-useVisitorsRealtime({
-  onChange: () => {
+  useEffect(() => {
     void loadVisitors();
-  },
-});
+  }, [loadVisitors]);
+
+  // Certifique-se de que useVisitorsRealtime está recebendo onChange corretamente
+  useVisitorsRealtime({
+    onChange: () => {
+      void loadVisitors();
+    },
+  });
 
   const filteredVisitors = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
@@ -97,12 +98,12 @@ useVisitorsRealtime({
 
     return visitors.filter((visitor) => {
       const searchableContent = [
-  visitor.name,
-  visitor.phone,
-  visitor.invitedBy,
-  visitor.cellName,
-  visitor.responsibleLeader?.fullName,
-]
+        visitor.name,
+        visitor.phone,
+        visitor.invitedBy,
+        visitor.cellName,
+        visitor.responsibleLeader?.fullName,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLocaleLowerCase("pt-BR");
@@ -115,11 +116,11 @@ useVisitorsRealtime({
     <section>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-brand-700">Pessoas</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+          <p className="text-sm font-semibold text-paz-primary">Pessoas</p> {/* Aplicado design system */}
+          <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text"> {/* Aplicado design system */}
             Visitantes
           </h2>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-paz-muted"> {/* Aplicado design system */}
             {visitors.length === 1
               ? "1 visitante cadastrado"
               : `${visitors.length} visitantes cadastrados`}
@@ -128,7 +129,7 @@ useVisitorsRealtime({
 
         <Link
           to="/visitantes/novo"
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700"
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover" // Aplicado design system
         >
           <Plus size={18} />
           <span className="hidden sm:inline">Novo visitante</span>
@@ -138,7 +139,7 @@ useVisitorsRealtime({
 
       <div className="relative mt-6">
         <Search
-          className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-paz-muted" // Aplicado design system
           size={20}
         />
 
@@ -147,60 +148,62 @@ useVisitorsRealtime({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar por nome, telefone ou célula..."
-          className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-4 pl-11 text-sm outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100"
+          className="w-full rounded-xl border border-paz-border bg-white py-3 pr-4 pl-11 text-sm outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-4 focus:ring-paz-soft" // Aplicado design system
         />
       </div>
-                {error && (
-  <p className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
-    {error}
-  </p>
-)}
 
-{isLoading ? (
-  <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-4 py-14 text-center">
-    <p className="text-sm font-semibold text-slate-600">
-      Carregando visitantes...
-    </p>
-  </div>
-) : (
-  <>
-    {visitors.length === 0 ? (
-      <EmptyVisitorList />
-    ) : filteredVisitors.length === 0 ? (
-      <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-14 text-center">
-        <Search className="mx-auto text-slate-300" size={38} />
-        <h3 className="mt-4 font-bold text-slate-700">
-          Nenhum resultado encontrado
-        </h3>
-        <p className="mt-2 text-sm text-slate-500">
-          Tente buscar usando outro nome, telefone ou célula.
+      {error && (
+        <p className="mt-5 rounded-xl border border-paz-error/20 bg-paz-error/10 p-3 text-sm font-medium text-paz-error"> {/* Aplicado design system */}
+          {error}
         </p>
-      </div>
-    ) : (
-      <div className="mt-6 space-y-3">
-        {filteredVisitors.map((visitor) => (
-          <VisitorCard key={visitor.id} visitor={visitor} />
-        ))}
-      </div>
-    )}
-  </>
-)}    
+      )}
+
+      {isLoading ? (
+        <div className="mt-6 rounded-2xl border border-paz-border bg-white px-4 py-14 text-center"> {/* Aplicado design system */}
+          <p className="text-sm font-semibold text-paz-muted"> {/* Aplicado design system */}
+            Carregando visitantes...
+          </p>
+        </div>
+      ) : (
+        <>
+          {visitors.length === 0 ? (
+            <EmptyVisitorList />
+          ) : filteredVisitors.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center"> {/* Aplicado design system */}
+              <Search className="mx-auto text-paz-muted" size={38} /> {/* Aplicado design system */}
+              <h3 className="mt-4 font-bold text-paz-text"> {/* Aplicado design system */}
+                Nenhum resultado encontrado
+              </h3>
+              <p className="mt-2 text-sm text-paz-muted"> {/* Aplicado design system */}
+                Tente buscar usando outro nome, telefone ou célula.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-6 space-y-3">
+              {filteredVisitors.map((visitor) => (
+                <VisitorCard key={visitor.id} visitor={visitor} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </section>
   );
 }
 
+// --- Componente EmptyVisitorList ---
 function EmptyVisitorList() {
   return (
-    <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-14 text-center">
-      <Users className="mx-auto text-slate-300" size={38} />
-      <h3 className="mt-4 font-bold text-slate-800">A lista está vazia</h3>
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-500">
+    <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center"> {/* Aplicado design system */}
+      <Users className="mx-auto text-paz-muted" size={38} /> {/* Aplicado design system */}
+      <h3 className="mt-4 font-bold text-paz-text">A lista está vazia</h3> {/* Aplicado design system */}
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-paz-muted"> {/* Aplicado design system */}
         Os visitantes cadastrados aparecerão aqui para facilitar o acompanhamento.
       </p>
 
       <Link
         to="/visitantes/novo"
-        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-brand-700"
+        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-paz-hover" // Aplicado design system
       >
         <Plus size={18} />
         Cadastrar primeiro visitante
@@ -209,6 +212,7 @@ function EmptyVisitorList() {
   );
 }
 
+// --- Componente VisitorCard ---
 type VisitorCardProps = {
   visitor: Visitor;
 };
@@ -220,19 +224,19 @@ function VisitorCard({ visitor }: VisitorCardProps) {
   return (
     <Link
       to={`/visitantes/${visitor.id}`}
-      className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md sm:p-5"
+      className="block rounded-2xl border border-paz-border bg-white p-4 shadow-sm transition hover:border-paz-primary hover:shadow-md sm:p-5" // Aplicado design system
     >
       <div className="flex items-start gap-3">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-paz-soft text-paz-primary"> {/* Aplicado design system */}
           <UserRound size={21} />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <h3 className="truncate font-bold text-slate-900">{visitor.name}</h3>
+              <h3 className="truncate font-bold text-paz-text">{visitor.name}</h3> {/* Aplicado design system */}
 
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-paz-muted"> {/* Aplicado design system */}
                 Visitou em {formatDate(visitor.visitDate)}
                 {visitor.cellName ? ` • ${visitor.cellName}` : ""}
               </p>
@@ -246,23 +250,26 @@ function VisitorCard({ visitor }: VisitorCardProps) {
             </span>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-500">
-  {visitor.phone && (
-    <span className="inline-flex items-center gap-1.5">
-      <MessageCircle size={14} />
-      {visitor.phone}
-    </span>
-  )}
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-paz-muted"> {/* Aplicado design system */}
+            {visitor.phone && (
+              <span className="inline-flex items-center gap-1.5">
+                <Phone size={14} /> {/* Usando Phone para telefone */}
+                {visitor.phone}
+              </span>
+            )}
 
-  {visitor.invitedBy && (
-    <span>Convidado por: {visitor.invitedBy}</span>
-  )}
+            {visitor.invitedBy && (
+              <span className="inline-flex items-center gap-1.5"> {/* Adicionado inline-flex e gap */}
+                <UserRoundPlus size={14} /> {/* Ícone para "Convidado por" */}
+                Convidado por: {visitor.invitedBy}
+              </span>
+            )}
 
-  <span className="inline-flex items-center gap-1.5">
-    <Users size={14} />
-    Responsável: {visitor.responsibleLeader?.fullName || "Não informado"}
-  </span>
-</div>
+            <span className="inline-flex items-center gap-1.5">
+              <Users size={14} />
+              Responsável: {visitor.responsibleLeader?.fullName || "Não informado"}
+            </span>
+          </div>
         </div>
       </div>
     </Link>

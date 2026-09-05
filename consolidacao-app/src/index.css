@@ -1,44 +1,22 @@
-@import "tailwindcss";
+/* src/index.css */
 
-@theme {
-  --color-brand-50: #f0fdf4;
-  --color-brand-100: #dcfce7;
-  --color-brand-200: #bbf7d0;
-  --color-brand-300: #86efac;
-  --color-brand-400: #4ade80;
-  --color-brand-500: #22c55e;
-  --color-brand-600: #16a34a;
-  --color-brand-700: #15803d;
-  --color-brand-800: #166534;
-  --color-brand-900: #14532d;
-
-  --color-surface: #f8fafc;
-  --color-ink: #0f172a;
-}
+/* Importações essenciais do Tailwind CSS v3.x */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  color: #0f172a;
-  background: #f8fafc;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; /* Adicionado para consistência */
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: #f8fafc;
 }
 
 button,
@@ -57,6 +35,61 @@ a {
   text-decoration: none;
 }
 
-  #nl-badge {
-    display: none !important;   
+/* Scrollbar fina do design system */
+@layer utilities {
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
+
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-paz-border rounded-full;
+  }
+}
+
+/* Estilos para itens de navegação ativos na sidebar */
+@layer components {
+  .nav-item.active {
+    @apply text-paz-primary bg-paz-soft font-semibold; /* Usando @apply para cores do DS */
+  }
+
+  .nav-item.active::before {
+    opacity: 1;
+  }
+
+  .nav-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    @apply bg-paz-primary; /* Cor da barra lateral ativa */
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  /* Estilos para botões de visualização (grid/lista) ativos */
+  .view-button.active {
+    border-color: #c8d5e8; /* Manter por enquanto, ou adicionar ao tailwind.config.js */
+    @apply text-paz-primary bg-paz-soft;
+  }
+
+  /* Estilos para cards de tarefa com efeito hover */
+  .task-card {
+    transition: transform 160ms ease, box-shadow 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .task-card:hover {
+    transform: translateY(-2px);
+    border-color: #b9c9df; /* Manter por enquanto, ou adicionar ao tailwind.config.js */
+    box-shadow: 0 10px 22px rgba(18, 47, 92, 0.08); /* Manter hardcoded ou definir no tailwind.config.js */
+  }
+}
+
+/* Ocultar o badge da Netlify em telas pequenas */
+#nl-badge {
+  display: none !important;
+}

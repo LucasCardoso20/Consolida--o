@@ -1,5 +1,5 @@
 // src/components/layout/AppHeader.tsx
-import { Bell, HeartHandshake } from "lucide-react";
+import { Bell } from "lucide-react";
 import logoImage from '../../img/logo.jpg'; // Certifique-se de que o caminho para a imagem está correto
 
 export function AppHeader() {

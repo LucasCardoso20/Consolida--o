@@ -1,13 +1,14 @@
+// src/components/layout/AppHeader.tsx
 import { Bell, HeartHandshake } from "lucide-react";
+import logoImage from '../../img/logo.jpg'; // Certifique-se de que o caminho para a imagem está correto
 
 export function AppHeader() {
-
   return (
-    <header className="sticky top-0 z-30 flex h-[88px] items-center justify-between border-b border-paz-border bg-white/95 px-8 backdrop-blur">
+    <header className="sticky top-0 z-30 flex h-[88px] items-center justify-between border-b border-paz-border bg-white/95 px-4 backdrop-blur lg:px-8"> {/* Ajustado padding horizontal */}
       {/* Logo e título para mobile (oculto no desktop) */}
       <div className="flex items-center gap-3 lg:hidden">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-paz-primary text-white shadow-sm">
-          <HeartHandshake size={22} strokeWidth={2.2} />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-paz-primary text-lg font-extrabold text-white shadow-sm">
+          <img src={logoImage} alt="Paz Church Logo" />
         </div>
 
         <div className="leading-tight">
@@ -27,11 +28,11 @@ export function AppHeader() {
       </div>
 
       {/* Botões de ação (busca, notificações, ajuda) */}
-      <div className="flex items-center gap-3">
-        {/* Campo de busca (oculto no mobile) */}
+      <div className="flex items-center gap-2 sm:gap-3"> {/* Ajustado gap para mobile */}
+        {/* Campo de busca (oculto no mobile, aparece em 'lg') */}
         <label className="relative hidden lg:block">
           <svg
-            className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-paz-muted" // Ajustado para text-paz-muted
+            className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-paz-muted"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -41,7 +42,7 @@ export function AppHeader() {
             <path d="m20 20-4-4" />
           </svg>
           <input
-            className="w-60 rounded-lg border border-paz-border bg-white py-2.5 pl-10 pr-4 text-[12px] text-paz-text outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-3 focus:ring-paz-soft" // Ajustado para placeholder:text-paz-muted
+            className="w-60 rounded-lg border border-paz-border bg-white py-2.5 pl-10 pr-4 text-[12px] text-paz-text outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-3 focus:ring-paz-soft"
             placeholder="Buscar pessoas..."
           />
         </label>
@@ -50,9 +51,9 @@ export function AppHeader() {
         <button
           type="button"
           aria-label="Notificações"
-          className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-paz-border bg-white text-paz-muted transition hover:border-paz-primary hover:text-paz-primary" // Ajustado para text-paz-muted
+          className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-paz-border bg-white text-paz-muted transition hover:border-paz-primary hover:text-paz-primary"
         >
-          <Bell size={17} strokeWidth={1.8} /> {/* Ícone do design system */}
+          <Bell size={17} strokeWidth={1.8} />
           <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-paz-error"></span>
         </button>
 
@@ -60,9 +61,8 @@ export function AppHeader() {
         <button
           type="button"
           aria-label="Ajuda"
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-paz-border bg-white text-paz-muted transition hover:border-paz-primary hover:text-paz-primary" // Ajustado para text-paz-muted
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-paz-border bg-white text-paz-muted transition hover:border-paz-primary hover:text-paz-primary"
         >
-          {/* Ícone de ajuda do design system */}
           <svg
             className="h-[17px] w-[17px]"
             viewBox="0 0 24 24"

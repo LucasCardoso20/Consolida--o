@@ -7,8 +7,8 @@ import {
   Search,
   UserRound,
   Users,
-  Phone, // Importado para o VisitorCard
-  UserRoundPlus, // Importado para o VisitorCard
+  Phone,
+  UserRoundPlus,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -112,8 +112,8 @@ export function VisitorsPage() {
   }, [search, visitors]);
 
   return (
-    <section>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"> {/* Ajustado para mobile */}
+    <section className="px-4 pb-20 sm:px-0 sm:pb-0"> {/* Adicionado px-4 e pb-20 */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-paz-primary">Pessoas</p>
           <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text">
@@ -249,7 +249,7 @@ function VisitorCard({ visitor }: VisitorCardProps) {
             </span>
           </div>
 
-          <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-4 gap-y-2 text-xs font-medium text-paz-muted"> {/* Ajustado para mobile */}
+          <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-4 gap-y-2 text-xs font-medium text-paz-muted">
             {visitor.phone && (
               <span className="inline-flex items-center gap-1.5">
                 <Phone size={14} />

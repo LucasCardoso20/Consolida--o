@@ -22,7 +22,6 @@ import {
   type Cell,
   type CellFormData,
 } from "../lib/cells";
-import type { FormEventHandler } from "react";
 
 // Esquema de validação para o formulário de célula
 const cellSchema = z.object({

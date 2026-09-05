@@ -4,7 +4,6 @@ import {
   Plus,
   Settings, // Ícone de Configurações
   Users, // Ícone para Pessoas
-  LogOut, // Ícone para deslogar
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { LogoutButton } from "./LogoutButton"; // Se você ainda usa este componente

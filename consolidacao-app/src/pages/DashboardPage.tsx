@@ -11,7 +11,7 @@ import {
   UserRoundPlus,
   Phone, // Adicionado para o ícone de WhatsApp
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState} from "react";
 import { Link } from "react-router-dom";
 
 import { getVisitors } from "../lib/visitors";
@@ -556,87 +556,5 @@ function PendingVisitorItem({ visitor }: PendingVisitorItemProps) {
         )}
       </div>
     </div>
-  );
-}
-
-type PriorityVisitorItemProps = {
-  visitor: Visitor;
-  priority: "overdue" | "today" | "withoutOwner";
-};
-
-function PriorityVisitorItem({
-  visitor,
-  priority,
-}: PriorityVisitorItemProps) {
-  const config = {
-    overdue: {
-      label: visitor.nextContactDate
-        ? `Contato atrasado desde ${formatDate(visitor.nextContactDate)}`
-        : "Contato atrasado",
-      badgeClassName: "bg-paz-error/10 text-paz-error",
-      borderClassName: "border-paz-error/20 hover:border-paz-error",
-      iconClassName: "bg-paz-error/10 text-paz-error",
-    },
-    today: {
-      label: "Contato previsto para hoje",
-      badgeClassName: "bg-paz-warning/10 text-paz-warning",
-      borderClassName: "border-paz-warning/20 hover:border-paz-warning",
-      iconClassName: "bg-paz-warning/10 text-paz-warning",
-    },
-    withoutOwner: {
-      label: "Sem responsável definido",
-      badgeClassName: "bg-paz-soft text-paz-muted",
-      borderClassName: "border-paz-border hover:border-paz-primary",
-      iconClassName: "bg-paz-soft text-paz-muted",
-    },
-  }[priority];
-
-  return (
-    <Link
-      to={`/visitantes/${visitor.id}`}
-      className={`group block rounded-xl border p-4 transition ${config.borderClassName} focus:outline-none focus:ring-2 focus:ring-paz-soft`}
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${config.iconClassName}`}
-        >
-          {priority === "overdue" ? (
-            <AlertTriangle size={20} />
-          ) : priority === "today" ? (
-            <CalendarClock size={20} />
-          ) : (
-            <CircleUserRound size={20} />
-          )}
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h4 className="truncate font-bold text-paz-text">
-              {visitor.name}
-            </h4>
-
-            <span
-              className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${config.badgeClassName}`}
-            >
-              {config.label}
-            </span>
-          </div>
-
-          <p className="mt-1 text-xs text-paz-muted">
-            {visitor.responsibleLeader?.fullName ?? "Responsável definido"}
-          </p>
-
-          <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-paz-muted">
-            <span className="font-semibold">Próxima ação: </span>
-            {visitor.nextAction ?? "Nenhuma ação definida ainda."}
-          </p>
-        </div>
-
-        <ArrowRight
-          size={18}
-          className="mt-1 shrink-0 text-paz-muted transition group-hover:translate-x-0.5 group-hover:text-paz-primary"
-        />
-      </div>
-    </Link>
   );
 }

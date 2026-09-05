@@ -1,5 +1,3 @@
-import { Settings } from "lucide-react";
-
 import { AccessManagementSection } from "../components/settings/AccessManagementSection";
 import { TeamMembersSection } from "../components/settings/TeamMembersSection";
 

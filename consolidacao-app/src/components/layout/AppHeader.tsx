@@ -1,8 +1,6 @@
 import { Bell, HeartHandshake } from "lucide-react";
-import { useAccess } from "../../contexts/AccessContext"; // Importar useAccess
 
 export function AppHeader() {
-  const { profile } = useAccess(); // Usar o hook useAccess
 
   return (
     <header className="sticky top-0 z-30 flex h-[88px] items-center justify-between border-b border-paz-border bg-white/95 px-8 backdrop-blur">

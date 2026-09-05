@@ -1,10 +1,10 @@
 import {
   type ChangeEvent,
-  type FormEvent,
   useEffect,
   useMemo,
   useState,
-  useCallback, // <--- Adicionado: Importação do useCallback
+  useCallback,
+  type FormEvent, // <--- Adicionado: Importação do useCallback
 } from "react";
 import {
   Building2,
@@ -22,7 +22,6 @@ import {
 
 import { useAccess } from "../contexts/AccessContext";
 import { supabase } from "../lib/supabase";
-import type { UserProfile } from "../types/access"; // <--- Importado UserProfile para tipagem
 
 type Organization = {
   id: string;
@@ -168,7 +167,7 @@ export function PendingApprovalPage() {
     };
   }, []);
 
-  async function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setFormError(null);

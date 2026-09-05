@@ -1,7 +1,6 @@
 import {
   CheckCircle2,
   Clock3,
-  MessageCircle, // Mantido para o telefone, se for o ícone desejado
   Plus,
   Search,
   UserRound,

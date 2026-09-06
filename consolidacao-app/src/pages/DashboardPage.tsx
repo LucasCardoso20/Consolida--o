@@ -6,7 +6,6 @@ import {
   LoaderCircle,
   MessageCircle,
   Users,
-  UserRoundPlus,
   Phone,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState} from "react";
@@ -200,33 +199,6 @@ export function DashboardPage() {
     [dashboard],
   );
 
-  const priorityVisitors = useMemo(() => {
-    const visitorsWithPriority: {
-      visitor: Visitor;
-      priority: "overdue" | "today" | "withoutOwner";
-    }[] = [];
-
-    dashboard.upcomingContact.forEach((visitor) => {
-      if (isOverdueContact(visitor.nextContactDate, visitor.followUpCompleted)) {
-        visitorsWithPriority.push({ visitor, priority: "overdue" });
-      } else if (
-        isTodayContact(visitor.nextContactDate, visitor.followUpCompleted)
-      ) {
-        visitorsWithPriority.push({ visitor, priority: "today" });
-      }
-    });
-
-    dashboard.pendingContact.forEach((visitor) => {
-      if (isWithoutOwner(visitor.responsibleLeaderId, visitor.followUpCompleted)) {
-        visitorsWithPriority.push({ visitor, priority: "withoutOwner" });
-      }
-    });
-
-    return visitorsWithPriority.sort((a, b) => {
-      const priorityOrder = { overdue: 1, today: 2, withoutOwner: 3 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
-    });
-  }, [dashboard.upcomingContact, dashboard.pendingContact]);
 
   const upcomingVisitors = useMemo(() => {
     return dashboard.upcomingContact.filter(
@@ -336,69 +308,6 @@ export function DashboardPage() {
                 <ArrowRight size={16} />
               </Link>
             )}
-          </section>
-
-          {/* Seção de Próximas ações */}
-          <section className="rounded-xl border border-paz-border bg-white shadow-panel">
-            <div className="border-b border-paz-border px-6 py-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[15px] font-bold tracking-[-0.02em] text-paz-text">
-                    Próximas ações
-                  </h3>
-                  <p className="mt-1 text-[12px] text-paz-muted">
-                    Para concluir hoje.
-                  </p>
-                </div>
-                <span className="rounded-full bg-paz-soft px-2 py-1 text-[10px] font-bold text-paz-primary">
-                  {priorityVisitors.length}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-1 p-3">
-              {priorityVisitors.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-paz-border bg-paz-soft px-5 py-10 text-center">
-                  <UserRoundPlus className="mx-auto text-paz-muted" size={32} />
-                  <p className="mt-3 font-bold text-paz-text">
-                    Nenhuma pendência prioritária
-                  </p>
-                  <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-paz-muted">
-                    Não há contatos atrasados, previstos para hoje ou visitantes sem
-                    responsável.
-                  </p>
-                </div>
-              ) : (
-                priorityVisitors.map(({ visitor, priority }) => (
-                  <Link
-                    key={visitor.id}
-                    to={`/visitantes/${visitor.id}`}
-                    className="task-card flex w-full items-start gap-3 rounded-lg border border-transparent p-3 text-left hover:border-paz-border"
-                  >
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-paz-primary"></span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[12px] font-semibold text-paz-text">
-                        {priority === "withoutOwner" && "Atribuir líder a "}
-                        {visitor.name}
-                      </span>
-                      <span className="mt-1 block text-[11px] text-paz-muted">
-                        {priority === "overdue" && `Acompanhamento · Atrasado desde ${formatDate(visitor.nextContactDate!)}`}
-                        {priority === "today" && `Acompanhamento · Previsto para hoje`}
-                        {priority === "withoutOwner" && `Novo visitante · Urgente`}
-                      </span>
-                    </span>
-                    {priority === "overdue" && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-paz-error"></span>}
-                    {priority === "today" && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-paz-warning"></span>}
-                  </Link>
-                ))
-              )}
-            </div>
-
-            <div className="mx-6 border-t border-paz-border py-4">
-              <Link to="/visitantes" className="text-[12px] font-semibold text-paz-primary hover:text-paz-hover">
-                Ver todas as tarefas →
-              </Link>
-            </div>
           </section>
 
           {/* Seção de Próximos contatos */}

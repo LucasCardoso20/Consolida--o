@@ -1,3 +1,4 @@
+// src/pages/CellsPage.tsx
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Edit3,
@@ -11,7 +12,7 @@ import {
   CalendarDays,
   Search,
 } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -108,10 +109,9 @@ export function CellsPage() {
     void loadCells();
   }, []);
 
-  function openCreateForm() {
+  function onCreateNewCell() {
     setSelectedCell(null);
     setFormError(null);
-
     reset({
       name: "",
       leaderName: "",
@@ -120,14 +120,12 @@ export function CellsPage() {
       notes: "",
       isActive: true,
     });
-
     setIsFormOpen(true);
   }
 
   function openEditForm(cell: Cell) {
     setSelectedCell(cell);
     setFormError(null);
-
     reset({
       name: cell.name,
       leaderName: cell.leaderName ?? "",
@@ -136,146 +134,114 @@ export function CellsPage() {
       notes: cell.notes ?? "",
       isActive: cell.isActive,
     });
-
     setIsFormOpen(true);
   }
 
   function closeForm() {
-    if (isSubmitting) {
-      return;
-    }
-
     setIsFormOpen(false);
     setSelectedCell(null);
-    setFormError(null);
   }
 
-  async function onSubmit(values: CellFormValues) {
+  async function onSubmit(data: CellFormValues) {
     setFormError(null);
 
-    const data: CellFormData = {
-      name: values.name,
-      leaderName: values.leaderName || null,
-      leaderPhone: values.leaderPhone || null,
-      location: values.location || null,
-      notes: values.notes || null,
-      isActive: values.isActive,
-    };
-
     try {
+      const cellData: CellFormData = {
+        name: data.name,
+        leaderName: data.leaderName || null,
+        leaderPhone: data.leaderPhone || null,
+        location: data.location || null,
+        notes: data.notes || null,
+        isActive: data.isActive,
+      };
+
       if (selectedCell) {
-        const updatedCell = await updateCell(selectedCell.id, data);
-
-        setCells((currentCells) =>
-          currentCells
-            .map((cell) => (cell.id === updatedCell.id ? updatedCell : cell))
-            .sort(sortCells),
-        );
+        await updateCell(selectedCell.id, cellData);
       } else {
-        const newCell = await createCell(data);
-
-        setCells((currentCells) => [...currentCells, newCell].sort(sortCells));
+        await createCell(cellData);
       }
 
+      await loadCells();
       closeForm();
     } catch (error) {
       setFormError(
         error instanceof Error
           ? error.message
-          : "Não foi possível salvar a célula.",
+          : "Não foi possível salvar a célula. Tente novamente.",
       );
     }
   }
 
   const filteredCells = useMemo(() => {
-    if (!searchTerm) {
+    const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
+    if (!normalizedSearch) {
       return cells;
     }
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
     return cells.filter(
       (cell) =>
-        cell.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-        (cell.leaderName && cell.leaderName.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (cell.location && cell.location.toLowerCase().includes(lowerCaseSearchTerm))
+        cell.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch) ||
+        cell.leaderName?.toLocaleLowerCase("pt-BR").includes(normalizedSearch),
     );
   }, [cells, searchTerm]);
 
-  const activeCells = filteredCells.filter((cell) => cell.isActive);
-  const inactiveCells = filteredCells.filter((cell) => !cell.isActive);
+  const activeCells = useMemo(
+    () => filteredCells.filter((cell) => cell.isActive),
+    [filteredCells],
+  );
+  const inactiveCells = useMemo(
+    () => filteredCells.filter((cell) => !cell.isActive),
+    [filteredCells],
+  );
 
   return (
-    <section>
-      {/* Seção superior: Título e botão "Nova célula" */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <section className="p-4 pb-24 lg:p-8 lg:pb-8"> {/* Adicionado padding aqui */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-paz-primary">Organização</p>
-
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text sm:text-3xl">
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-paz-text">
             Células
-          </h2>
-
-          <p className="mt-2 text-sm text-paz-muted">
-            Cadastre e organize as células da igreja.
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-paz-muted">
+            Gerencie e acompanhe todas as células da sua organização.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={openCreateForm}
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
+          onClick={onCreateNewCell}
+          className="inline-flex items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
         >
           <Plus size={18} />
-          <span className="hidden sm:inline">Nova célula</span>
-          <span className="sm:hidden">Nova</span>
+          Nova célula
         </button>
       </div>
 
-      {/* Campo de pesquisa */}
       <div className="relative mt-6">
-        <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-paz-muted" size={20} />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-paz-muted" size={18} />
         <input
-          type="search"
-          placeholder="Buscar por nome, líder ou localização..."
-          className="w-full rounded-xl border border-paz-border bg-white py-3 pr-4 pl-11 text-sm outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-4 focus:ring-paz-soft"
+          type="text"
+          placeholder="Buscar células por nome ou líder..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full rounded-xl border border-paz-border bg-white py-3 pl-10 pr-4 text-sm text-paz-text outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-4 focus:ring-paz-soft"
         />
       </div>
 
-      {/* Exibição de estado: Carregando, Erro, Lista Vazia, Resultados da Pesquisa */}
+      {pageError && (
+        <div className="mt-6 rounded-xl border border-paz-error bg-paz-error/10 p-4 text-sm font-medium text-paz-error">
+          {pageError}
+        </div>
+      )}
+
       {isLoading ? (
-        <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-paz-border bg-white p-10 text-center">
-          <LoaderCircle className="animate-spin text-paz-muted" size={38} />
-          <h3 className="mt-4 font-bold text-paz-text">Carregando células...</h3>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-paz-muted">
-            Aguarde enquanto buscamos as informações das suas células.
+        <div className="mt-6 flex min-h-48 items-center justify-center rounded-xl border border-paz-border bg-white p-6 text-center shadow-sm">
+          <LoaderCircle className="animate-spin text-paz-primary" size={30} />
+          <p className="ml-3 text-sm font-semibold text-paz-muted">
+            Carregando células...
           </p>
         </div>
-      ) : pageError ? (
-        <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-paz-error/50 bg-paz-error/5 p-10 text-center">
-          <X className="text-paz-error" size={38} />
-          <h3 className="mt-4 font-bold text-paz-error">Erro ao carregar células</h3>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-paz-error">
-            {pageError}
-          </p>
-          <button
-            type="button"
-            onClick={loadCells}
-            className="mt-6 rounded-lg bg-paz-error px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-paz-error/90"
-          >
-            Tentar novamente
-          </button>
-        </div>
-      ) : cells.length === 0 && !searchTerm ? (
-        <EmptyCellList onCreateNewCell={openCreateForm} />
-      ) : filteredCells.length === 0 && searchTerm ? (
-        <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-paz-border bg-white p-10 text-center">
-          <Search className="text-paz-muted" size={38} />
-          <h3 className="mt-4 font-bold text-paz-text">Nenhuma célula encontrada</h3>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-paz-muted">
-            Verifique o termo de pesquisa ou tente novamente.
-          </p>
-        </div>
+      ) : cells.length === 0 ? (
+        <EmptyCellList onCreateNewCell={onCreateNewCell} />
       ) : (
         <>
           {activeCells.length > 0 && (
@@ -304,128 +270,77 @@ export function CellsPage() {
 
       {/* Modal de Formulário */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white shadow-float max-h-[90vh] overflow-y-auto"> {/* Adicionado max-h e overflow-y */}
-            <div className="flex items-center justify-between border-b border-paz-border px-6 py-4 sticky top-0 bg-white z-10"> {/* Adicionado sticky top-0 */}
-              <h3 className="text-lg font-semibold text-paz-text">
-                {selectedCell ? "Editar célula" : "Nova célula"}
-              </h3>
+        <div className="fixed inset-0 z-50 flex items-end bg-paz-primary/20 p-0 backdrop-blur-[2px] sm:items-center sm:justify-center sm:p-4" role="presentation">
+          <div className="max-h-[92dvh] w-full overflow-y-auto rounded-t-xl bg-white p-5 shadow-float sm:max-w-md sm:rounded-xl sm:p-6" role="dialog" aria-modal="true" aria-labelledby="cell-form-title">
+            <div className="flex sticky top-0 bg-white z-10 items-start justify-between gap-4 pb-4">
+              <div>
+                <p className="text-sm font-semibold text-paz-primary">Gerenciamento</p>
+                <h3 id="cell-form-title" className="mt-1 text-xl font-bold tracking-tight text-paz-text">
+                  {selectedCell ? "Editar célula" : "Nova célula"}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-paz-muted">
+                  Preencha os dados da célula para cadastrar ou atualizar.
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={closeForm}
-                className="rounded-md p-1.5 text-paz-muted transition hover:bg-paz-soft hover:text-paz-text"
                 disabled={isSubmitting}
+                aria-label="Fechar"
+                className="flex size-10 shrink-0 items-center justify-center rounded-xl text-paz-muted transition hover:bg-paz-soft hover:text-paz-primary disabled:cursor-not-allowed"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-5">
               {formError && (
-                <div className="rounded-lg bg-paz-error/10 p-3 text-[12px] text-paz-error">
+                <p className="rounded-xl border border-paz-error bg-paz-error/10 p-3 text-sm font-medium text-paz-error">
                   {formError}
-                </div>
+                </p>
               )}
 
-              {/* Campos do formulário */}
-              {/* Campo Nome da Célula */}
-              <label>
-                <span className="mb-1.5 block text-[12px] font-medium text-paz-text">
-                  Nome da célula <b className="text-paz-primary">*</b>
-                </span>
+              <FormField label="Nome da célula" required error={errors.name?.message}>
                 <input
                   {...register("name")}
-                  required
                   placeholder="Ex.: Célula Esperança"
-                  className={`w-full rounded-lg border px-3 py-2.5 text-[12px] outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-3 focus:ring-paz-soft shadow-sm ${
-                    errors.name ? "border-paz-error" : "border-paz-border"
-                  }`}
+                  className={inputClassName(Boolean(errors.name))}
                 />
-                {errors.name && (
-                  <p className="mt-1 text-[11px] text-paz-error">
-                    {errors.name.message}
-                  </p>
-                )}
-              </label>
+              </FormField>
 
-              {/* Campo Nome do Líder */}
-              <label>
-                <span className="mb-1.5 block text-[12px] font-medium text-paz-text">
-                  Nome do líder
-                </span>
+              <FormField label="Nome do líder" error={errors.leaderName?.message}>
                 <input
                   {...register("leaderName")}
                   placeholder="Ex.: Ana Silva"
-                  className={`w-full rounded-lg border px-3 py-2.5 text-[12px] outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-3 focus:ring-paz-soft shadow-sm ${
-                    errors.leaderName ? "border-paz-error" : "border-paz-border"
-                  }`}
+                  className={inputClassName(Boolean(errors.leaderName))}
                 />
-                {errors.leaderName && (
-                  <p className="mt-1 text-[11px] text-paz-error">
-                    {errors.leaderName.message}
-                  </p>
-                )}
-              </label>
+              </FormField>
 
-              {/* Campo Telefone do Líder */}
-              <label>
-                <span className="mb-1.5 block text-[12px] font-medium text-paz-text">
-                  Telefone do líder
-                </span>
+              <FormField label="Telefone do líder" error={errors.leaderPhone?.message}>
                 <input
                   {...register("leaderPhone")}
                   placeholder="(00) 00000-0000"
-                  className={`w-full rounded-lg border px-3 py-2.5 text-[12px] outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-3 focus:ring-paz-soft shadow-sm ${
-                    errors.leaderPhone ? "border-paz-error" : "border-paz-border"
-                  }`}
+                  className={inputClassName(Boolean(errors.leaderPhone))}
                 />
-                {errors.leaderPhone && (
-                  <p className="mt-1 text-[11px] text-paz-error">
-                    {errors.leaderPhone.message}
-                  </p>
-                )}
-              </label>
+              </FormField>
 
-              {/* Campo Localização */}
-              <label>
-                <span className="mb-1.5 block text-[12px] font-medium text-paz-text">
-                  Localização
-                </span>
+              <FormField label="Localização" error={errors.location?.message}>
                 <input
                   {...register("location")}
                   placeholder="Ex.: Rua da Paz, 123 - Centro"
-                  className={`w-full rounded-lg border px-3 py-2.5 text-[12px] outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-3 focus:ring-paz-soft shadow-sm ${
-                    errors.location ? "border-paz-error" : "border-paz-border"
-                  }`}
+                  className={inputClassName(Boolean(errors.location))}
                 />
-                {errors.location && (
-                  <p className="mt-1 text-[11px] text-paz-error">
-                    {errors.location.message}
-                  </p>
-                )}
-              </label>
+              </FormField>
 
-              {/* Campo Observações */}
-              <label>
-                <span className="mb-1.5 block text-[12px] font-medium text-paz-text">
-                  Observações
-                </span>
+              <FormField label="Observações" error={errors.notes?.message}>
                 <textarea
                   {...register("notes")}
                   rows={3}
                   placeholder="Informações adicionais sobre a célula..."
-                  className={`w-full resize-none rounded-lg border px-3 py-2.5 text-[12px] outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-3 focus:ring-paz-soft shadow-sm ${
-                    errors.notes ? "border-paz-error" : "border-paz-border"
-                  }`}
+                  className={`${inputClassName(Boolean(errors.notes))} resize-y`}
                 ></textarea>
-                {errors.notes && (
-                  <p className="mt-1 text-[11px] text-paz-error">
-                    {errors.notes.message}
-                  </p>
-                )}
-              </label>
+              </FormField>
 
-              {/* Checkbox Ativa/Inativa */}
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -433,31 +348,36 @@ export function CellsPage() {
                   id="isActive"
                   className="h-4 w-4 rounded border-paz-border text-paz-primary focus:ring-paz-primary"
                 />
-                <label htmlFor="isActive" className="text-[12px] font-medium text-paz-text">
+                <label htmlFor="isActive" className="text-sm font-medium text-paz-text">
                   Célula ativa
                 </label>
               </div>
 
-              <div className="flex flex-col-reverse gap-2 border-t border-paz-border pt-4 sm:flex-row sm:justify-end"> {/* Ajustado para mobile */}
+              <div className="flex flex-col-reverse gap-3 border-t border-paz-border pt-6 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="rounded-lg px-4 py-2.5 text-[12px] font-semibold text-paz-muted transition hover:bg-paz-soft"
+                  className="rounded-xl border border-paz-border px-4 py-3 text-sm font-bold text-paz-muted transition hover:bg-paz-soft disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isSubmitting}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-paz-primary px-4 py-2.5 text-[12px] font-semibold text-white shadow-sm transition hover:bg-paz-hover"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-paz-primary px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <LoaderCircle className="animate-spin" size={16} />
+                    <>
+                      <LoaderCircle className="animate-spin" size={18} />
+                      Salvando...
+                    </>
                   ) : (
-                    <Save size={16} />
+                    <>
+                      <Save size={18} />
+                      {selectedCell ? "Salvar alterações" : "Cadastrar célula"}
+                    </>
                   )}
-                  {selectedCell ? "Salvar alterações" : "Cadastrar célula"}
                 </button>
               </div>
             </form>
@@ -502,9 +422,9 @@ type CellListItemProps = {
 
 function CellListItem({ cell, onEdit }: CellListItemProps) {
   return (
-    <div className="rounded-2xl border border-paz-border bg-white p-4 shadow-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"> {/* Ajustado para mobile */}
-      <div className="flex-1"> {/* Adicionado flex-1 para ocupar espaço */}
-        <div className="flex flex-wrap items-center gap-2 mb-1"> {/* Adicionado flex-wrap */}
+    <div className="rounded-2xl border border-paz-border bg-white p-4 shadow-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex-1">
+        <div className="flex flex-wrap items-center gap-2 mb-1">
           <p className="text-[16px] font-semibold text-paz-text">{cell.name}</p>
           <span
             className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -519,7 +439,7 @@ function CellListItem({ cell, onEdit }: CellListItemProps) {
         {cell.leaderName && (
           <p className="text-[13px] text-paz-muted">Líder: {cell.leaderName}</p>
         )}
-        <div className="grid grid-cols-1 sm:grid-cols-1 gap-y-1 mt-2 text-[12px] text-paz-muted"> {/* Ajustado para grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-1 gap-y-1 mt-2 text-[12px] text-paz-muted">
           {cell.leaderPhone && (
             <span className="flex items-center gap-1">
               <Phone size={14} strokeWidth={1.5} className="text-paz-muted" />
@@ -548,4 +468,43 @@ function CellListItem({ cell, onEdit }: CellListItemProps) {
       </button>
     </div>
   );
+}
+
+type FormFieldProps = {
+  label: string;
+  children: ReactNode;
+  required?: boolean;
+  error?: string;
+};
+
+function FormField({
+  label,
+  children,
+  required = false,
+  error,
+}: FormFieldProps) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-bold text-paz-text">
+        {label}
+        {required && <span className="ml-1 text-paz-error">*</span>}
+      </span>
+
+      {children}
+
+      {error && (
+        <span className="mt-1.5 block text-xs font-medium text-paz-error">
+          {error}
+        </span>
+      )}
+    </label>
+  );
+}
+
+function inputClassName(hasError: boolean) {
+  return `w-full rounded-xl border bg-white px-4 py-3 text-sm text-paz-text outline-none transition placeholder:text-paz-muted focus:ring-4 ${
+    hasError
+      ? "border-paz-error focus:border-paz-error focus:ring-paz-error/20"
+      : "border-paz-border focus:border-paz-primary focus:ring-paz-soft"
+  }`;
 }

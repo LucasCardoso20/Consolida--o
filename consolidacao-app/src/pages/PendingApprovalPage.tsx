@@ -267,7 +267,7 @@ export function PendingApprovalPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-paz-background px-4 py-8 sm:px-6">
+    <main className="flex min-h-screen items-center justify-center bg-paz-background p-4 sm:p-6"> {/* Ajuste de padding aqui */}
       <section className="w-full max-w-xl rounded-xl border border-paz-border bg-white p-6 shadow-xl shadow-paz-primary/5 sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div
@@ -320,7 +320,7 @@ export function PendingApprovalPage() {
             <div className="flex items-start gap-3">
               <LockKeyhole size={21} className="mt-0.5 shrink-0 text-paz-warning" />
 
-              <div className="min-w-0"> {/* Adicionado min-w-0 */}
+              <div className="min-w-0">
                 <h2 className="font-bold text-paz-text">Acesso desativado</h2>
 
                 <p className="mt-1 text-sm leading-relaxed text-paz-muted">
@@ -333,7 +333,7 @@ export function PendingApprovalPage() {
         )}
 
         {isLoadingData ? (
-          <div className="mt-6 flex min-h-32 items-center justify-center gap-3 rounded-xl bg-paz-soft px-5 py-8 text-sm font-semibold text-paz-muted text-center"> {/* Adicionado text-center */}
+          <div className="mt-6 flex min-h-32 items-center justify-center gap-3 rounded-xl bg-paz-soft px-5 py-8 text-sm font-semibold text-paz-muted text-center">
             <LoaderCircle size={20} className="animate-spin text-paz-primary" />
             Carregando informações...
           </div>
@@ -345,7 +345,7 @@ export function PendingApprovalPage() {
                 className="mt-0.5 shrink-0 text-paz-success"
               />
 
-              <div className="min-w-0"> {/* Adicionado min-w-0 */}
+              <div className="min-w-0">
                 <h2 className="font-bold text-paz-text">
                   Solicitação enviada com sucesso
                 </h2>

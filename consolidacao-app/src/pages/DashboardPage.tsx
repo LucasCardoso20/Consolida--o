@@ -1,3 +1,4 @@
+// src/pages/DashboardPage.tsx
 import {
   ArrowRight,
   CheckCircle2,
@@ -6,7 +7,7 @@ import {
   MessageCircle,
   Users,
   UserRoundPlus,
-  Phone, // Adicionado para o ícone de WhatsApp
+  Phone,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState} from "react";
 import { Link } from "react-router-dom";
@@ -84,180 +85,162 @@ function isWithoutOwner(
 }
 
 export function DashboardPage() {
-  const [visitors, setVisitors] = useState<Visitor[]>([]);
+  const { profile } = useAccess();
+
+  const [dashboard, setDashboard] = useState({
+    totalVisitors: 0,
+    pendingContact: [] as Visitor[],
+    inFollowUp: 0,
+    overdueContact: 0,
+    todayContact: 0,
+    withoutOwner: 0,
+    upcomingContact: [] as Visitor[],
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadDashboard = useCallback(async () => {
+  const loadDashboardData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      setError(null);
+      const visitors = await getVisitors();
 
-      const loadedVisitors = await getVisitors();
-      setVisitors(loadedVisitors);
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Não foi possível carregar os dados do painel.",
+      const pendingContact = visitors.filter(
+        (v) => !v.firstContactMade && v.phone,
       );
+      const inFollowUp = visitors.filter(
+        (v) => v.firstContactMade && !v.followUpCompleted,
+      ).length;
+
+      const overdueContact = visitors.filter((v) =>
+        isOverdueContact(v.nextContactDate, v.followUpCompleted),
+      ).length;
+
+      const todayContact = visitors.filter((v) =>
+        isTodayContact(v.nextContactDate, v.followUpCompleted),
+      ).length;
+
+      const withoutOwner = visitors.filter((v) =>
+        isWithoutOwner(v.responsibleLeaderId, v.followUpCompleted),
+      ).length;
+
+      const upcomingContact = visitors
+        .filter(
+          (v) =>
+            v.nextContactDate &&
+            v.nextContactDate > getTodayDate() &&
+            !v.followUpCompleted,
+        )
+        .sort((a, b) =>
+          (a.nextContactDate || "").localeCompare(b.nextContactDate || ""),
+        );
+
+      setDashboard({
+        totalVisitors: visitors.length,
+        pendingContact,
+        inFollowUp,
+        overdueContact,
+        todayContact,
+        withoutOwner,
+        upcomingContact,
+      });
+    } catch (err) {
+      console.error("Failed to load dashboard data:", err);
+      setError("Não foi possível carregar os dados do painel.");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const overdueVisitors = visitors
-    .filter((visitor) =>
-      isOverdueContact(
-        visitor.nextContactDate,
-        visitor.followUpCompleted,
-      ),
-    )
-    .sort((firstVisitor, secondVisitor) =>
-      (firstVisitor.nextContactDate ?? "").localeCompare(
-        secondVisitor.nextContactDate ?? "",
-      ),
-    );
-
-  const todayVisitors = visitors
-    .filter((visitor) =>
-      isTodayContact(
-        visitor.nextContactDate,
-        visitor.followUpCompleted,
-      ),
-    )
-    .sort((firstVisitor, secondVisitor) =>
-      firstVisitor.name.localeCompare(secondVisitor.name, "pt-BR"),
-    );
-
-  const visitorsWithoutOwner = visitors
-    .filter((visitor) =>
-      isWithoutOwner(
-        visitor.responsibleLeaderId,
-        visitor.followUpCompleted,
-      ),
-    )
-
-  const upcomingVisitors = visitors
-    .filter(
-      (visitor) =>
-        !visitor.followUpCompleted &&
-        visitor.nextContactDate &&
-        visitor.nextContactDate > getTodayDate(),
-    )
-    .sort((firstVisitor, secondVisitor) =>
-      (firstVisitor.nextContactDate ?? "").localeCompare(
-        secondVisitor.nextContactDate ?? "",
-      ),
-    )
-    .slice(0, 5);
-
-  const priorityVisitors = [
-    ...overdueVisitors.map((visitor) => ({
-      visitor,
-      priority: "overdue" as const,
-    })),
-    ...todayVisitors.map((visitor) => ({
-      visitor,
-      priority: "today" as const,
-    })),
-    ...visitorsWithoutOwner
-      .filter(
-        (visitor) =>
-          !overdueVisitors.some(
-            (overdueVisitor) => overdueVisitor.id === visitor.id,
-          ) &&
-          !todayVisitors.some(
-            (todayVisitor) => todayVisitor.id === visitor.id,
-          ),
-      )
-      .map((visitor) => ({
-        visitor,
-        priority: "withoutOwner" as const,
-      })),
-  ].slice(0, 8);
-
   useEffect(() => {
-    void loadDashboard();
-  }, [loadDashboard]);
+    void loadDashboardData();
+  }, [loadDashboardData]);
 
   useVisitorsRealtime({
     onChange: () => {
-      void loadDashboard();
+      void loadDashboardData();
     },
   });
 
-  const dashboard = useMemo(() => {
-    const pendingContact = visitors.filter(
+  const dashboardMetrics = useMemo(
+    () => [
+      {
+        label: "Total de visitantes",
+        value: dashboard.totalVisitors,
+        icon: Users,
+        iconBg: "bg-paz-soft",
+        iconColor: "text-paz-primary",
+        description: "Total de pessoas cadastradas no sistema.",
+      },
+      {
+        label: "Pendentes de contato",
+        value: dashboard.pendingContact.length,
+        icon: Clock3,
+        iconBg: "bg-paz-warning/10",
+        iconColor: "text-paz-warning",
+        description: "Pessoas que precisam do primeiro contato.",
+      },
+      {
+        label: "Em acompanhamento",
+        value: dashboard.inFollowUp,
+        icon: MessageCircle,
+        iconBg: "bg-paz-info/10",
+        iconColor: "text-paz-info",
+        description: "Pessoas que já receberam o primeiro contato.",
+      },
+      {
+        label: "Concluídos",
+        value: dashboard.totalVisitors - dashboard.inFollowUp - dashboard.pendingContact.length, // Ajuste para refletir os concluídos
+        icon: CheckCircle2,
+        iconBg: "bg-paz-success/10",
+        iconColor: "text-paz-success",
+        description: "Acompanhamentos finalizados.",
+      },
+    ],
+    [dashboard],
+  );
+
+  const priorityVisitors = useMemo(() => {
+    const visitorsWithPriority: {
+      visitor: Visitor;
+      priority: "overdue" | "today" | "withoutOwner";
+    }[] = [];
+
+    dashboard.upcomingContact.forEach((visitor) => {
+      if (isOverdueContact(visitor.nextContactDate, visitor.followUpCompleted)) {
+        visitorsWithPriority.push({ visitor, priority: "overdue" });
+      } else if (
+        isTodayContact(visitor.nextContactDate, visitor.followUpCompleted)
+      ) {
+        visitorsWithPriority.push({ visitor, priority: "today" });
+      }
+    });
+
+    dashboard.pendingContact.forEach((visitor) => {
+      if (isWithoutOwner(visitor.responsibleLeaderId, visitor.followUpCompleted)) {
+        visitorsWithPriority.push({ visitor, priority: "withoutOwner" });
+      }
+    });
+
+    return visitorsWithPriority.sort((a, b) => {
+      const priorityOrder = { overdue: 1, today: 2, withoutOwner: 3 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
+  }, [dashboard.upcomingContact, dashboard.pendingContact]);
+
+  const upcomingVisitors = useMemo(() => {
+    return dashboard.upcomingContact.filter(
       (visitor) =>
-        Boolean(visitor.phone) &&
-        !visitor.firstContactMade &&
-        !visitor.followUpCompleted,
+        !isOverdueContact(visitor.nextContactDate, visitor.followUpCompleted) &&
+        !isTodayContact(visitor.nextContactDate, visitor.followUpCompleted) &&
+        !isWithoutOwner(visitor.responsibleLeaderId, visitor.followUpCompleted),
     );
-
-    const inFollowUp = visitors.filter(
-      (visitor) =>
-        visitor.firstContactMade && !visitor.followUpCompleted,
-    );
-
-    const completed = visitors.filter(
-      (visitor) => visitor.followUpCompleted,
-    );
-
-    return {
-      totalVisitors: visitors.length,
-      pendingContact,
-      inFollowUp,
-      completed,
-    };
-  }, [visitors]);
-
-  // Dados para os cards de métricas, agora incluindo os que faltavam e sem mock
-  const dashboardMetrics = [
-    {
-      label: "Pessoas cadastradas",
-      value: dashboard.totalVisitors,
-      description: `+${visitors.filter(v => new Date(v.createdAt).getMonth() === new Date().getMonth()).length} neste mês`,
-      icon: Users,
-      iconBg: "bg-paz-soft",
-      iconColor: "text-paz-primary",
-      badge: null,
-    },
-    {
-      label: "Pendentes de contato",
-      value: dashboard.pendingContact.length,
-      description: "Precisam de atenção",
-      icon: Clock3,
-      iconBg: "bg-paz-soft",
-      iconColor: "text-paz-warning",
-      badge: null,
-    },
-    {
-      label: "Em acompanhamento",
-      value: dashboard.inFollowUp.length,
-      description: "Contato já realizado",
-      icon: MessageCircle,
-      iconBg: "bg-paz-soft",
-      iconColor: "text-paz-primary",
-      badge: null,
-    },
-    {
-      label: "Consolidações concluídas",
-      value: dashboard.completed.length, // Agora dinâmico
-      description: null,
-      icon: CheckCircle2,
-      iconBg: "bg-emerald-50",
-      iconColor: "text-paz-success",
-      badge: null, // Mantido mockado, pois não há dados para meta
-      progressBar: { value: Math.round((dashboard.completed.length / dashboard.totalVisitors) * 100) || 0, color: "bg-paz-primary" }, // Agora dinâmico
-    },
-  ];
-
-  const { profile } = useAccess(); // Usar o hook useAccess
+  }, [dashboard.upcomingContact]);
 
   return (
-    <section>
-      {/* Cabeçalho da página - Adaptado para o DS */}
-      <section className="mb-8 flex flex-wrap items-end justify-between gap-5">
+    <section className="p-4 pb-24 lg:p-8 lg:pb-8 space-y-6 sm:space-y-8"> {/* Adicionado padding e space-y */}
+      {/* Header da Página */}
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2 text-[12px] text-paz-muted">
             <span>Visão geral</span>
@@ -287,7 +270,7 @@ export function DashboardPage() {
       </section>
 
       {error && (
-        <div className="mb-6 rounded-xl border border-paz-error bg-paz-error/10 p-4 text-sm font-medium text-paz-error">
+        <div className="rounded-xl border border-paz-error bg-paz-error/10 p-4 text-sm font-medium text-paz-error">
           {error}
         </div>
       )}
@@ -296,7 +279,7 @@ export function DashboardPage() {
         <DashboardLoading />
       ) : (
         <>
-          {/* Cards de Métricas - Adaptados para o DS */}
+          {/* Cards de Métricas */}
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {dashboardMetrics.map((metric, index) => (
               <article key={index} className="rounded-xl border border-paz-border bg-white p-5 shadow-panel">
@@ -304,26 +287,17 @@ export function DashboardPage() {
                   <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${metric.iconBg} ${metric.iconColor}`}>
                     <metric.icon className="h-[18px] w-[18px]" strokeWidth="1.9" />
                   </div>
-                  {/* {metric.badge && (
-                    <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${metric.badge?.bg} ${metric.badge.color}`}>
-                      {metric.badge.text}
-                    </span>
-                  )} */}
                 </div>
                 <p className="mt-5 text-[12px] font-medium text-paz-muted">{metric.label}</p>
                 <p className="mt-1 text-[27px] font-bold tracking-[-0.04em] text-paz-text">{metric.value}</p>
                 {metric.description && <p className="mt-1 text-[11px] text-slate-400">{metric.description}</p>}
-                {metric.progressBar && (
-                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-full" style={{ width: `${metric.progressBar.value}%`, backgroundColor: "var(--paz-primary)" }}></div>
-                  </div>
-                )}
+                
               </article>
             ))}
           </section>
 
-          {/* Seção de Pendências de acompanhamento (Lista de Pendências) - Movida para cima e 100% da largura */}
-          <section className="mt-6 rounded-xl border border-paz-border bg-white p-5 shadow-panel sm:mt-8 sm:p-6">
+          {/* Seção de Pendências de acompanhamento */}
+          <section className="rounded-xl border border-paz-border bg-white p-5 shadow-panel sm:p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-[15px] font-bold tracking-[-0.02em] text-paz-text">
@@ -364,8 +338,8 @@ export function DashboardPage() {
             )}
           </section>
 
-          {/* Seção de Próximas ações - Agora ocupando 100% da largura */}
-          <section className="mt-6 rounded-xl border border-paz-border bg-white shadow-panel">
+          {/* Seção de Próximas ações */}
+          <section className="rounded-xl border border-paz-border bg-white shadow-panel">
             <div className="border-b border-paz-border px-6 py-5">
               <div className="flex items-center justify-between">
                 <div>
@@ -427,8 +401,8 @@ export function DashboardPage() {
             </div>
           </section>
 
-          {/* Seção de Próximos contatos (Lista de Próximos Contatos) - Mantida */}
-          <section className="mt-6 rounded-xl border border-paz-border bg-white p-5 shadow-panel sm:p-6">
+          {/* Seção de Próximos contatos */}
+          <section className="rounded-xl border border-paz-border bg-white p-5 shadow-panel sm:p-6">
             <div>
               <h3 className="text-[15px] font-bold tracking-[-0.02em] text-paz-text">
                 Próximos contatos

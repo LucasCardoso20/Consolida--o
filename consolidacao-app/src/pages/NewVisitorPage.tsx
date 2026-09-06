@@ -145,7 +145,7 @@ export function NewVisitorPage() {
   }
 
   return (
-    <section className="mx-auto max-w-2xl px-4 sm:px-0"> {/* Adicionado padding horizontal para mobile */}
+    <section className="p-4 pb-24 lg:p-8 lg:pb-8 max-w-2xl mx-auto">
       <div className="mb-6">
         <Link
           to="/visitantes"

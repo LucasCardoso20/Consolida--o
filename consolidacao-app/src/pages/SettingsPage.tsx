@@ -4,7 +4,7 @@ import { TeamMembersSection } from "../components/settings/TeamMembersSection";
 
 export function SettingsPage() {
   return (
-    <section>
+    <section className="p-4 pb-24 lg:p-8 lg:pb-8"> {/* APENAS O PADDING FOI ALTERADO AQUI */}
       <p className="text-sm font-semibold text-paz-primary">Administração</p>
 
       <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text">

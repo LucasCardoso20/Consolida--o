@@ -48,7 +48,6 @@ const visitorSchema = z.object({
     .trim()
     .max(1000, "As observações podem ter no máximo 1.000 caracteres.")
     .optional(),
-  receivedAtService: z.boolean(),
   receivedGift: z.boolean(),
   phoneConfirmed: z.boolean(),
 });
@@ -83,7 +82,6 @@ export function NewVisitorPage() {
       cellId: "",
       visitDate: getTodayDate(),
       notes: "",
-      receivedAtService: true,
       receivedGift: false,
       phoneConfirmed: false,
     },
@@ -123,7 +121,6 @@ export function NewVisitorPage() {
         cellId: data.cellId || null,
         visitDate: data.visitDate,
         notes: data.notes || null,
-        receivedAtService: data.receivedAtService,
         receivedGift: data.receivedGift,
         phoneConfirmed: data.phoneConfirmed,
 
@@ -275,13 +272,6 @@ export function NewVisitorPage() {
           </div>
 
           <div className="mt-5 space-y-3">
-            <CheckboxField
-              id="receivedAtService"
-              label="Foi recebido no culto"
-              description="A pessoa foi acolhida pela equipe."
-              registration={register("receivedAtService")}
-            />
-
             <CheckboxField
               id="receivedGift"
               label="Recebeu lembrancinha"

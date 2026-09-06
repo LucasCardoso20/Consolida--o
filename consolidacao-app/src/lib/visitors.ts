@@ -53,7 +53,6 @@ export type NewVisitorData = {
   visitDate: string;
   notes: string | null;
 
-  receivedAtService: boolean;
   receivedGift: boolean;
   phoneConfirmed: boolean;
     responsibleLeaderId: string;
@@ -306,7 +305,6 @@ export async function createVisitor(
       visit_date: visitorData.visitDate,
       notes: normalizeOptionalValue(visitorData.notes),
 
-      received_at_service: visitorData.receivedAtService,
       received_gift: visitorData.receivedGift,
       phone_confirmed: visitorData.phoneConfirmed,
       first_contact_made: false,
@@ -435,7 +433,6 @@ export async function updateVisitorProgress(visitor: Visitor): Promise<Visitor> 
   const { data, error } = await supabase
     .from("visitors")
     .update({
-      received_at_service: visitor.receivedAtService,
       received_gift: visitor.receivedGift,
       phone_confirmed: visitor.phoneConfirmed,
       first_contact_made: visitor.firstContactMade,

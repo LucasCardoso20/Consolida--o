@@ -9,6 +9,7 @@ import {
   Users,
   Phone,
   UserRoundPlus,
+  LoaderCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -112,7 +113,9 @@ export function VisitorsPage() {
   }, [search, visitors]);
 
   return (
-    <section className="px-4 pb-20 sm:px-0 sm:pb-0"> {/* Adicionado px-4 e pb-20 */}
+    // Adicionado padding horizontal e vertical para a página
+    // O pb-24 é para garantir espaço para a bottom navigation
+    <section className="p-4 pb-24 lg:p-8 lg:pb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-paz-primary">Pessoas</p>
@@ -131,43 +134,37 @@ export function VisitorsPage() {
           className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
         >
           <Plus size={18} />
-          <span className="hidden sm:inline">Novo visitante</span>
-          <span className="sm:hidden">Novo</span>
+          Novo visitante
         </Link>
       </div>
 
       <div className="relative mt-6">
-        <Search
-          className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-paz-muted"
-          size={20}
-        />
-
+        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-paz-muted" />
         <input
-          type="search"
+          type="text"
+          placeholder="Buscar visitantes..."
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Buscar por nome, telefone ou célula..."
-          className="w-full rounded-xl border border-paz-border bg-white py-3 pr-4 pl-11 text-sm outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-4 focus:ring-paz-soft"
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-xl border border-paz-border bg-white py-2.5 pl-10 pr-4 text-[12px] text-paz-text outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-3 focus:ring-paz-soft"
         />
       </div>
 
-      {error && (
-        <p className="mt-5 rounded-xl border border-paz-error/20 bg-paz-error/10 p-3 text-sm font-medium text-paz-error">
-          {error}
-        </p>
-      )}
-
       {isLoading ? (
-        <div className="mt-6 rounded-2xl border border-paz-border bg-white px-4 py-14 text-center">
-          <p className="text-sm font-semibold text-paz-muted">
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-xl border border-paz-border bg-white p-8 shadow-sm">
+          <LoaderCircle className="animate-spin text-paz-primary" size={24} />
+          <p className="text-sm font-medium text-paz-muted">
             Carregando visitantes...
           </p>
         </div>
+      ) : error ? (
+        <div className="mt-6 rounded-xl border border-paz-error bg-paz-error/10 p-4 text-sm font-medium text-paz-error">
+          <p>{error}</p>
+        </div>
+      ) : visitors.length === 0 ? (
+        <EmptyVisitorList />
       ) : (
         <>
-          {visitors.length === 0 ? (
-            <EmptyVisitorList />
-          ) : filteredVisitors.length === 0 ? (
+          {filteredVisitors.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center">
               <Search className="mx-auto text-paz-muted" size={38} />
               <h3 className="mt-4 font-bold text-paz-text">
@@ -251,22 +248,22 @@ function VisitorCard({ visitor }: VisitorCardProps) {
 
           <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-4 gap-y-2 text-xs font-medium text-paz-muted">
             {visitor.phone && (
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1.5 min-w-0">
                 <Phone size={14} />
-                {visitor.phone}
+                <span className="truncate">{visitor.phone}</span>
               </span>
             )}
 
             {visitor.invitedBy && (
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1.5 min-w-0">
                 <UserRoundPlus size={14} />
-                Convidado por: {visitor.invitedBy}
+                <span className="truncate">Convidado por: {visitor.invitedBy}</span>
               </span>
             )}
 
-            <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 min-w-0">
               <Users size={14} />
-              Responsável: {visitor.responsibleLeader?.fullName || "Não informado"}
+              <span className="truncate">Responsável: {visitor.responsibleLeader?.fullName || "Não informado"}</span>
             </span>
           </div>
         </div>

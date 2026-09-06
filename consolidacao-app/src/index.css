@@ -93,3 +93,12 @@ a {
 #nl-badge {
   display: none !important;
 }
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden; /* Garante que não haverá scroll horizontal no corpo da página */
+  -webkit-overflow-scrolling: touch; /* Melhora o scroll em iOS */
+}

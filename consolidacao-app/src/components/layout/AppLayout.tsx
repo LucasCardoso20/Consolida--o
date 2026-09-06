@@ -8,23 +8,26 @@ export function AppLayout() {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar para desktop - oculta em telas menores que 'lg' */}
-      <div className="hidden lg:block"> {/* Adicionado hidden lg:block */}
+      {/* Adicionado 'hidden' para ocultar por padrão e 'lg:flex' para exibir em telas grandes */}
+      <div className="hidden lg:flex flex-col flex-shrink-0 w-[264px] border-r border-paz-border bg-paz-primary text-white">
         <SidebarNavigation />
       </div>
 
-      {/* Área principal do conteúdo */}
-      <div className="flex-1 min-h-screen lg:pl-[264px]">
-        {/* Header superior */}
+      <div className="flex flex-1 flex-col overflow-x-hidden">
         <AppHeader />
 
-        {/* Conteúdo da página */}
-        <main className="mx-auto w-full max-w-[1550px] p-4 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:p-8 lg:pb-8"> {/* Ajustado padding para mobile */}
+        {/* Conteúdo principal da página */}
+        {/* Removido o p-4 daqui para que cada página gerencie seu próprio padding */}
+        <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
-      </div>
 
-      {/* Navegação inferior para mobile - oculta em telas maiores que 'lg' */}
-      <BottomNavigation />
+        {/* Navegação inferior para mobile - oculta em telas maiores que 'lg' */}
+        {/* Adicionado 'lg:hidden' para ocultar em telas grandes e 'block' para exibir em mobile */}
+        <div className="block lg:hidden">
+          <BottomNavigation />
+        </div>
+      </div>
     </div>
   );
 }

@@ -288,9 +288,9 @@ export function DashboardPage() {
                     <metric.icon className="h-[18px] w-[18px]" strokeWidth="1.9" />
                   </div>
                 </div>
-                <p className="mt-5 text-[12px] font-medium text-paz-muted">{metric.label}</p>
+                <p className="mt-5 text-[16px] font-medium text-paz-muted">{metric.label}</p>
                 <p className="mt-1 text-[27px] font-bold tracking-[-0.04em] text-paz-text">{metric.value}</p>
-                {metric.description && <p className="mt-1 text-[11px] text-slate-400">{metric.description}</p>}
+                {metric.description && <p className="mt-1 text-[14px] text-slate-400">{metric.description}</p>}
                 
               </article>
             ))}

@@ -5,8 +5,8 @@ import {
   Settings, // Ícone de Configurações
   Users, // Ícone para Pessoas
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
-import { LogoutButton } from "./LogoutButton"; // Se você ainda usa este componente
+import { NavLink, useNavigate } from "react-router-dom"; // Importar useNavigate
+import { LogoutButton } from "./LogoutButton";
 import { useAccess } from "../../contexts/AccessContext";
 import logoImage from '../../img/logo.jpg'; // Certifique-se de que o caminho para a imagem está correto
 
@@ -14,9 +14,9 @@ import logoImage from '../../img/logo.jpg'; // Certifique-se de que o caminho pa
 interface NavItem {
   label: string;
   to: string;
-  icon: React.ElementType; // Usamos React.ElementType para os componentes de ícone
-  end?: boolean; // 'end' é opcional
-  badge?: number; // Opcional para badges como o "24"
+  icon: React.ElementType;
+  end?: boolean;
+  badge?: number;
 }
 
 // Itens de navegação conforme suas especificações
@@ -24,7 +24,7 @@ const navigationItems: NavItem[] = [
   {
     label: "Dashboard",
     to: "/",
-    icon: Home, // Usando Home para Dashboard, como no HTML fornecido
+    icon: Home,
     end: true,
   },
   {
@@ -39,7 +39,7 @@ const navigationItems: NavItem[] = [
     icon: ClipboardList,
   },
   {
-    label: "Configurações", // Configurações no lugar de Acompanhamentos
+    label: "Configurações",
     to: "/configuracoes",
     icon: Settings,
   },
@@ -47,6 +47,7 @@ const navigationItems: NavItem[] = [
 
 export function SidebarNavigation() {
   const { profile } = useAccess();
+  const navigate = useNavigate(); // Hook para navegação
 
   const getInitials = (fullName: string | null) => {
     if (!fullName) return "??";
@@ -55,9 +56,12 @@ export function SidebarNavigation() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  const handleAddVisitorClick = () => {
+    navigate("/visitantes/novo"); // Navega para a rota de cadastro de novo visitante
+  };
+
   return (
     <aside
-      // Classes da sidebar do HTML fornecido
       className="fixed inset-y-0 left-0 z-40 flex w-[264px] flex-col border-r border-paz-border bg-white shadow-lg"
     >
       {/* Marca */}
@@ -79,11 +83,12 @@ export function SidebarNavigation() {
       {/* Ação principal */}
       <div className="px-5 pb-6">
         <button
-          id="open-modal"
+          type="button" // Adicionado type="button" para evitar submit de formulário
+          onClick={handleAddVisitorClick} // Adicionado o handler de clique
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-[13px] font-semibold text-white shadow-md transition hover:bg-paz-hover focus:outline-none focus:ring-4 focus:ring-paz-soft"
         >
           <Plus width="18" height="18" strokeWidth="2" />
-          Adicionar pessoa
+          Novo visitante {/* Texto alterado */}
         </button>
       </div>
 
@@ -102,20 +107,15 @@ export function SidebarNavigation() {
                 className={({ isActive }: { isActive: boolean }) =>
                   `nav-item relative flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-left text-[13px] transition ${
                     isActive
-                      ? "active" // Usa a classe 'active' definida no CSS global
+                      ? "active"
                       : "text-paz-muted hover:bg-paz-soft hover:text-paz-primary"
                   }`
                 }
               >
-                {/* CORREÇÃO AQUI: className do Icon agora é uma string, não uma função */}
                 <Icon
                   size={17}
                   strokeWidth={1.8}
-                  className={
-                    // A cor do ícone é controlada pela cor do texto do NavLink pai
-                    // ou pode ser definida explicitamente se necessário
-                    "text-current" // Usa a cor do texto do elemento pai
-                  }
+                  className={"text-current"}
                 />
                 {label}
                 {badge && (
@@ -143,10 +143,7 @@ export function SidebarNavigation() {
               {profile?.role === "MASTER" ? "Master" : "Líder"}
             </p>
           </div>
-          {/* Botão de logout com ícone */}
-                      <LogoutButton/>
-
-          
+          <LogoutButton />
         </div>
       </div>
     </aside>

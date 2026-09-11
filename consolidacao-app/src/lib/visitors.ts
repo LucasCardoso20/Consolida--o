@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import type { Cell, Visitor, VisitorStatus } from "../types/visitor";
+import type { UserProfile } from "../types/access";
 
 type DatabaseVisitor = {
   id: string;
@@ -37,6 +38,8 @@ next_action: string | null;
   cells?: {
     name: string;
   } | null;
+
+  accepted_jesus?: boolean | null; // Nova propriedade para indicar se o visitante aceitou Jesus
 };
 
 type Profile = {
@@ -71,6 +74,7 @@ export type UpdateVisitorData = {
   followUpOwnerName: string | null;
   nextContactDate: string | null;
   nextAction: string | null;
+  acceptedJesus?: boolean | null; // Novo campo para "Aceitou Jesus"
 };
 
 function mapVisitor(visitor: DatabaseVisitor): Visitor {
@@ -110,6 +114,8 @@ nextAction: visitor.next_action,
           role: visitor.responsible_leader.role,
         }
       : null,
+
+    acceptedJesus: visitor.accepted_jesus ?? false, // Preencher com false se for null ou undefined
   };
 }
 
@@ -182,8 +188,9 @@ export async function getCells(): Promise<Cell[]> {
   }));
 }
 
-export async function getVisitors(): Promise<Visitor[]> {
-  const { data, error } = await supabase
+// Adicione um parâmetro 'userProfile' à função getVisitors
+export async function getVisitors(userProfile: UserProfile | null): Promise<Visitor[]> {
+  let query = supabase
     .from("visitors")
     .select(
       `
@@ -197,8 +204,8 @@ export async function getVisitors(): Promise<Visitor[]> {
         visit_date,
         notes,
         follow_up_owner_name,
-next_contact_date,
-next_action,
+        next_contact_date,
+        next_action,
         received_at_service,
         received_gift,
         phone_confirmed,
@@ -207,10 +214,11 @@ next_action,
         attended_cell,
         follow_up_completed,
         status,
-                created_by,
+        created_by,
         created_at,
         updated_at,
         responsible_leader_id,
+        accepted_jesus,
         cells ( name ),
         responsible_leader:profiles!visitors_responsible_leader_id_fkey (
           id,
@@ -220,6 +228,13 @@ next_action,
       `,
     )
     .order("created_at", { ascending: false });
+
+  // Aplicar filtro se o usuário for um LÍDER
+  if (userProfile && userProfile.role === "LEADER") {
+    query = query.eq("responsible_leader_id", userProfile.id);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error("Não foi possível carregar os visitantes.");
@@ -260,6 +275,7 @@ export async function getVisitorById(visitorId: string): Promise<Visitor> {
     updated_at,
 
     responsible_leader_id,
+    accepted_jesus,
 
     cells ( name ),
 
@@ -379,6 +395,7 @@ export async function updateVisitor(
         ),
     next_contact_date: visitorData.nextContactDate,
     next_action: normalizeOptionalValue(visitorData.nextAction),
+accepted_jesus: visitorData.acceptedJesus,
     })
     .eq("id", visitorId)
     .select(
@@ -408,6 +425,7 @@ export async function updateVisitor(
     updated_at,
 
     responsible_leader_id,
+    accepted_jesus,
 
     cells ( name ),
 

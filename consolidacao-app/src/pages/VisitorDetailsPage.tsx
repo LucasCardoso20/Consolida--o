@@ -18,16 +18,18 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useParams } from "react-router-dom";
 import { z } from "zod";
+import { useAccess } from "../contexts/AccessContext"; // Importar useAccess
 
 import {
   getCells,
   getVisitorById,
   updateVisitor,
   updateVisitorProgress,
+  type UpdateVisitorData,
 } from "../lib/visitors";
 import {
   createVisitorInteraction,
@@ -81,6 +83,8 @@ const visitorEditSchema = z.object({
     .trim()
     .max(500, "A próxima ação pode ter no máximo 500 caracteres.")
     .optional(),
+
+    acceptedJesus: z.boolean().optional(),
 });
 
 type VisitorEditFormData = z.infer<typeof visitorEditSchema>;
@@ -231,6 +235,7 @@ function getWhatsAppUrl(phone: string, name: string) {
 
 export function VisitorDetailsPage() {
   const { visitorId } = useParams();
+  const { profile } = useAccess(); // Obter o perfil do usuário logado
 
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [cells, setCells] = useState<Cell[]>([]);
@@ -245,6 +250,7 @@ export function VisitorDetailsPage() {
   const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
   const [interactionError, setInteractionError] = useState<string | null>(null);
   const [responsibleLeaderId, setResponsibleLeaderId] = useState("");
+  const [acceptedJesus, setAcceptedJesus] = useState(false);
   const {
     register,
     handleSubmit,
@@ -263,6 +269,7 @@ export function VisitorDetailsPage() {
       followUpOwnerName: "",
       nextContactDate: "",
       nextAction: "",
+      acceptedJesus: false, // Valor padrão para a nova propriedade
     },
   });
 
@@ -283,6 +290,15 @@ export function VisitorDetailsPage() {
       nextStep: "",
     },
   });
+
+  //Can edit
+  const canEdit = useMemo(() => {
+  if (!profile || !visitor) return false;
+  // Master pode editar qualquer um
+  if (profile.role === "MASTER") return true;
+  // Líder pode editar se for o responsável
+  return profile.role === "LEADER" && visitor.responsibleLeaderId === profile.id;
+}, [profile, visitor]);
 
   useEffect(() => {
     async function loadVisitor() {
@@ -358,6 +374,7 @@ export function VisitorDetailsPage() {
       followUpOwnerName: visitor.followUpOwnerName ?? "",
       nextContactDate: visitor.nextContactDate ?? "",
       nextAction: visitor.nextAction ?? "",
+      acceptedJesus: visitor.acceptedJesus ?? false, // Preencher o valor atual de acceptedJesus
     });
 
     setIsEditModalOpen(true);
@@ -408,9 +425,11 @@ export function VisitorDetailsPage() {
         followUpOwnerName: visitor.followUpOwnerName,
         nextContactDate: visitor.nextContactDate,
         nextAction: visitor.nextAction,
+        acceptedJesus: data.acceptedJesus || false,
       });
 
       setVisitor(updatedVisitor);
+      setAcceptedJesus(updatedVisitor.acceptedJesus ?? false);
       setIsEditModalOpen(false);
     } catch (updateError) {
       setFormError(
@@ -446,6 +465,63 @@ export function VisitorDetailsPage() {
       setSavingKey(null);
     }
   }
+
+    // <--- FUNÇÃO toggleAcceptedJesus REVISADA
+  async function toggleAcceptedJesus() {
+    if (!visitor || !canEdit) return;
+
+    setError(null); // Limpa erros anteriores
+
+    const previousAcceptedJesus = acceptedJesus; // Salva o estado anterior para rollback
+    const newAcceptedJesusStatus = !previousAcceptedJesus; // Calcula o novo estado
+
+    // 1. Atualização otimista da UI
+    setAcceptedJesus(newAcceptedJesusStatus); // Atualiza o estado local do checkbox
+    setVisitor((prevVisitor) => {
+      if (!prevVisitor) return null;
+      return { ...prevVisitor, acceptedJesus: newAcceptedJesusStatus };
+    });
+
+    try {
+      // 2. Prepara os dados para a API
+      // É crucial enviar TODOS os campos que 'updateVisitor' espera,
+      // mesmo que só um esteja mudando, para evitar que outros campos sejam resetados.
+      const updatedVisitorData: UpdateVisitorData = {
+        name: visitor.name,
+        phone: visitor.phone,
+        address: visitor.address,
+        invitedBy: visitor.invitedBy,
+        cellId: visitor.cellId,
+        visitDate: visitor.visitDate,
+        notes: visitor.notes,
+        followUpOwnerName: visitor.followUpOwnerName,
+        nextContactDate: visitor.nextContactDate,
+        nextAction: visitor.nextAction,
+        responsibleLeaderId: visitor.responsibleLeaderId, // Não esqueça campos obrigatórios!
+        acceptedJesus: newAcceptedJesusStatus, // O campo que estamos atualizando
+      };
+
+      // 3. Chama a API para atualizar o visitante
+      const updated = await updateVisitor(visitor.id, updatedVisitorData);
+
+      // 4. Atualiza o estado global do visitante com os dados retornados pela API (confirmação)
+      setVisitor(updated);
+      setAcceptedJesus(updated.acceptedJesus ?? false); // Garante que o estado local esteja sincronizado
+    } catch (updateError) {
+      // 5. Em caso de erro, reverte a UI para o estado anterior
+      setAcceptedJesus(previousAcceptedJesus);
+      setVisitor((prevVisitor) => {
+        if (!prevVisitor) return null;
+        return { ...prevVisitor, acceptedJesus: previousAcceptedJesus };
+      });
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Não foi possível atualizar a decisão por Jesus.",
+      );
+    }
+  }
+  // --- FIM DA FUNÇÃO toggleAcceptedJesus REVISADA
 
   function openInteractionModal() {
     resetInteraction({
@@ -559,15 +635,16 @@ export function VisitorDetailsPage() {
               Acompanhe o progresso e o histórico de contatos.
             </p>
           </div>
-
-          <button
-            type="button"
-            onClick={openEditModal}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
-          >
-            <Edit3 size={18} />
-            Editar visitante
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={openEditModal}
+              className="inline-flex items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
+            >
+              <Edit3 size={18} />
+              Editar Visitante
+            </button>
+          )}
         </div>
       </div>
 
@@ -716,14 +793,16 @@ export function VisitorDetailsPage() {
             </div>
 
             <div className="mt-5">
-              <button
-                type="button"
-                onClick={openInteractionModal}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
-              >
-                <ClipboardPlus size={18} />
-                Registrar contato
-              </button>
+              {canEdit && ( // Renderiza o botão de registrar contato apenas se o usuário tiver permissão
+                <button
+                  type="button"
+                  onClick={openInteractionModal}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
+                >
+                  <ClipboardPlus size={18} />
+                  Registrar contato
+                </button>
+              )}
             </div>
 
             {interactionError && (
@@ -877,6 +956,56 @@ export function VisitorDetailsPage() {
               ))}
             </div>
           </section>
+
+{/* NOVA SEÇÃO: Decisão por Jesus */}
+          <section className="mt-6 rounded-xl border border-paz-border bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-paz-soft text-paz-primary">
+                <UserCheck size={20} /> {/* Ícone para "Aceitou Jesus" */}
+              </div>
+
+              <div>
+                <h4 className="font-bold text-paz-text">Decisão por Jesus</h4>
+                <p className="mt-1 text-sm text-paz-muted">
+                  Marque se o visitante fez uma decisão por Jesus.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <button
+                type="button"
+                onClick={() => void toggleAcceptedJesus()} // <--- CHAMADA DA FUNÇÃO
+                disabled={!canEdit}
+                className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${
+                  acceptedJesus // <--- USA O ESTADO LOCAL AQUI
+                    ? "border-paz-soft bg-paz-soft"
+                    : "border-paz-border hover:border-paz-primary hover:bg-paz-soft"
+                }`}
+              >
+                <span
+                  className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border transition ${
+                    acceptedJesus // <--- E AQUI
+                      ? "border-paz-primary bg-paz-primary text-white"
+                      : "border-paz-border bg-white"
+                  }`}
+                >
+                  <Check size={16} />
+                </span>
+
+                <span>
+                  <span className="block text-sm font-bold text-paz-text">
+                    Aceitou Jesus
+                  </span>
+
+                  <span className="mt-0.5 block text-xs leading-relaxed text-paz-muted">
+                    Marque se o visitante fez uma decisão por Jesus.
+                  </span>
+                </span>
+              </button>
+            </div>
+          </section>
+          {/* FIM DA NOVA SEÇÃO */}
         </aside>
       </div>
 
@@ -935,6 +1064,7 @@ export function VisitorDetailsPage() {
                   autoFocus
                   autoComplete="name"
                   placeholder="Ex.: Ana Beatriz Silva"
+                  disabled={!canEdit}
                   className={inputClassName(Boolean(errors.name))}
                 />
               </FormField>
@@ -949,6 +1079,7 @@ export function VisitorDetailsPage() {
                     inputMode="tel"
                     autoComplete="tel"
                     placeholder="(11) 99999-9999"
+                    disabled={!canEdit}
                     className={inputClassName(Boolean(errors.phone))}
                   />
                 </FormField>
@@ -961,6 +1092,7 @@ export function VisitorDetailsPage() {
                   <input
                     {...register("visitDate")}
                     type="date"
+                    disabled={!canEdit}
                     className={inputClassName(Boolean(errors.visitDate))}
                   />
                 </FormField>
@@ -971,6 +1103,7 @@ export function VisitorDetailsPage() {
                   {...register("address")}
                   autoComplete="street-address"
                   placeholder="Ex.: Rua das Flores, 123 — Bairro Centro"
+                  disabled={!canEdit}
                   className={inputClassName(Boolean(errors.address))}
                 />
               </FormField>
@@ -979,12 +1112,12 @@ export function VisitorDetailsPage() {
                 <LeaderSelect
                   value={responsibleLeaderId}
                   onChange={setResponsibleLeaderId}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !canEdit}
                 />
                 <FormField label="Célula">
                   <select
                     {...register("cellId")}
-                    disabled={isLoadingCells}
+                    disabled={isLoadingCells || !canEdit}
                     className={inputClassName(false)}
                   >
                     <option value="">
@@ -1041,6 +1174,7 @@ export function VisitorDetailsPage() {
                       {...register("followUpOwnerName")}
                       autoComplete="name"
                       placeholder="Ex.: Maria Silva"
+                      disabled={!canEdit}
                       className={inputClassName(
                         Boolean(errors.followUpOwnerName),
                       )}
@@ -1054,6 +1188,7 @@ export function VisitorDetailsPage() {
                     <input
                       {...register("nextContactDate")}
                       type="date"
+                      disabled={!canEdit}
                       className={inputClassName(
                         Boolean(errors.nextContactDate),
                       )}
@@ -1171,6 +1306,7 @@ export function VisitorDetailsPage() {
                   <input
                     {...registerInteraction("interactionDate")}
                     type="date"
+                    disabled={!canEdit}
                     className={inputClassName(
                       Boolean(interactionErrors.interactionDate),
                     )}
@@ -1184,6 +1320,7 @@ export function VisitorDetailsPage() {
                 >
                   <select
                     {...registerInteraction("interactionType")}
+                    disabled={!canEdit}
                     className={inputClassName(
                       Boolean(interactionErrors.interactionType),
                     )}

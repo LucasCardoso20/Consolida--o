@@ -21,7 +21,6 @@ export type Visitor = {
   followUpOwnerName: string | null;
   nextContactDate: string | null;
   nextAction: string | null;
-
   receivedAtService: boolean;
   receivedGift: boolean;
   phoneConfirmed: boolean;
@@ -44,6 +43,8 @@ export type Visitor = {
     fullName: string | null;
     role: "MASTER" | "LEADER";
   } | null;
+
+  acceptedJesus?: boolean; // Nova propriedade para indicar se o visitante aceitou Jesus  
 };
 
 export type Cell = {

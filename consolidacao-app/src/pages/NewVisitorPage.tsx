@@ -214,6 +214,7 @@ export function NewVisitorPage() {
             onChange={setResponsibleLeaderId}
             disabled={isSubmitting}
             error={serverError}
+            isAddingVisitor={true}
           />
 
           <div className="grid gap-5 sm:grid-cols-2">

@@ -23,6 +23,7 @@ import {
   type Cell,
   type CellFormData,
 } from "../lib/cells";
+import { useAccess } from "../contexts/AccessContext"; // Importar useAccess
 
 const cellSchema = z.object({
   name: z
@@ -62,6 +63,9 @@ function sortCells(a: Cell, b: Cell) {
 }
 
 export function CellsPage() {
+  const { profile } = useAccess(); // Obter o perfil do usuário logado
+  const isMaster = profile?.role === "MASTER"; // Determinar se o usuário é Master
+
   const [cells, setCells] = useState<Cell[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -90,16 +94,14 @@ export function CellsPage() {
   async function loadCells() {
     setIsLoading(true);
     setPageError(null);
-
     try {
-      const loadedCells = await getCells(true);
-      setCells(loadedCells.sort(sortCells));
-    } catch (error) {
-      setPageError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível carregar as células.",
-      );
+      // Modificação aqui: Chamar getCells sem argumento para carregar todas as células
+      // Ou com um argumento que indique para não filtrar por ativo, dependendo da sua implementação de getCells
+      const fetchedCells = await getCells(); // Assumindo que getCells() sem argumento retorna todas
+      setCells(fetchedCells);
+    } catch (err) {
+      console.error("Failed to load cells:", err);
+      setPageError("Não foi possível carregar as células.");
     } finally {
       setIsLoading(false);
     }
@@ -109,9 +111,9 @@ export function CellsPage() {
     void loadCells();
   }, []);
 
-  function onCreateNewCell() {
+  const onCreateNewCell = () => {
+    if (!isMaster) return; // Impedir que não-Masters abram o formulário de criação
     setSelectedCell(null);
-    setFormError(null);
     reset({
       name: "",
       leaderName: "",
@@ -120,215 +122,222 @@ export function CellsPage() {
       notes: "",
       isActive: true,
     });
-    setIsFormOpen(true);
-  }
-
-  function openEditForm(cell: Cell) {
-    setSelectedCell(cell);
     setFormError(null);
+    setIsFormOpen(true);
+  };
+
+  const openEditForm = (cell: Cell) => {
+    if (!isMaster) return; // Impedir que não-Masters abram o formulário de edição
+    setSelectedCell(cell);
     reset({
       name: cell.name,
-      leaderName: cell.leaderName ?? "",
-      leaderPhone: cell.leaderPhone ?? "",
-      location: cell.location ?? "",
-      notes: cell.notes ?? "",
+      leaderName: cell.leaderName || "",
+      leaderPhone: cell.leaderPhone || "",
+      location: cell.location || "",
+      notes: cell.notes || "",
       isActive: cell.isActive,
     });
+    setFormError(null);
     setIsFormOpen(true);
-  }
+  };
 
-  function closeForm() {
+  const closeForm = () => {
     setIsFormOpen(false);
     setSelectedCell(null);
-  }
+    setFormError(null);
+  };
 
   async function onSubmit(data: CellFormValues) {
-    setFormError(null);
+    if (!isMaster) {
+      setFormError("Você não tem permissão para criar ou editar células.");
+      return;
+    }
 
+    setFormError(null);
     try {
-      const cellData: CellFormData = {
+      const cellDataToSubmit: CellFormData = {
         name: data.name,
-        leaderName: data.leaderName || null,
-        leaderPhone: data.leaderPhone || null,
-        location: data.location || null,
-        notes: data.notes || null,
+        leaderName: data.leaderName || null, // Mapear undefined para null
+        leaderPhone: data.leaderPhone || null, // Mapear undefined para null
+        location: data.location || null, // Mapear undefined para null
+        notes: data.notes || null, // Mapear undefined para null
         isActive: data.isActive,
       };
 
       if (selectedCell) {
-        await updateCell(selectedCell.id, cellData);
+        await updateCell(selectedCell.id, cellDataToSubmit);
       } else {
-        await createCell(cellData);
+        await createCell(cellDataToSubmit);
       }
-
       await loadCells();
       closeForm();
-    } catch (error) {
-      setFormError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível salvar a célula. Tente novamente.",
-      );
+    } catch (err) {
+      console.error("Failed to save cell:", err);
+      setFormError("Não foi possível salvar a célula. Tente novamente.");
     }
   }
 
   const filteredCells = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
-    if (!normalizedSearch) {
-      return cells;
-    }
-    return cells.filter(
-      (cell) =>
-        cell.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch) ||
-        cell.leaderName?.toLocaleLowerCase("pt-BR").includes(normalizedSearch),
-    );
-  }, [cells, searchTerm]);
 
-  const activeCells = useMemo(
-    () => filteredCells.filter((cell) => cell.isActive),
-    [filteredCells],
-  );
-  const inactiveCells = useMemo(
-    () => filteredCells.filter((cell) => !cell.isActive),
-    [filteredCells],
-  );
+    if (!normalizedSearch) {
+      return cells.sort(sortCells);
+    }
+
+    return cells
+      .filter((cell) => {
+        const searchableContent = [
+          cell.name,
+          cell.leaderName,
+          cell.location,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLocaleLowerCase("pt-BR");
+
+        return searchableContent.includes(normalizedSearch);
+      })
+      .sort(sortCells);
+  }, [searchTerm, cells]);
+
+  const activeCells = useMemo(() => filteredCells.filter((cell) => cell.isActive), [filteredCells]);
+  const inactiveCells = useMemo(() => filteredCells.filter((cell) => !cell.isActive), [filteredCells]);
 
   return (
-    <section className="p-4 pb-24 lg:p-8 lg:pb-8"> {/* Adicionado padding aqui */}
+    <section className="p-4 pb-24 lg:p-8 lg:pb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-paz-primary">Organização</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-paz-text">
+          <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text">
             Células
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-paz-muted">
-            Gerencie e acompanhe todas as células da sua organização.
+          </h2>
+          <p className="mt-2 text-sm text-paz-muted">
+            Gerencie as células da sua organização.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onCreateNewCell}
-          className="inline-flex items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
-        >
-          <Plus size={18} />
-          Nova célula
-        </button>
-      </div>
+        <div className="flex items-center gap-3">
+          <div className="relative w-full sm:w-auto">
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-paz-muted"
+            />
+            <input
+              type="text"
+              placeholder="Buscar célula..."
+              className="w-full rounded-xl border border-paz-border bg-white py-2 pl-10 pr-4 text-sm text-paz-text outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-4 focus:ring-paz-soft sm:w-56"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-      <div className="relative mt-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-paz-muted" size={18} />
-        <input
-          type="text"
-          placeholder="Buscar células por nome ou líder..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full rounded-xl border border-paz-border bg-white py-3 pl-10 pr-4 text-sm text-paz-text outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-4 focus:ring-paz-soft"
-        />
-      </div>
-
-      {pageError && (
-        <div className="mt-6 rounded-xl border border-paz-error bg-paz-error/10 p-4 text-sm font-medium text-paz-error">
-          {pageError}
+          {isMaster && ( // Botão "Nova célula" visível apenas para Masters
+            <button
+              type="button"
+              onClick={onCreateNewCell}
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover"
+            >
+              <Plus size={18} />
+              Nova célula
+            </button>
+          )}
         </div>
-      )}
+      </div>
 
       {isLoading ? (
-        <div className="mt-6 flex min-h-48 items-center justify-center rounded-xl border border-paz-border bg-white p-6 text-center shadow-sm">
-          <LoaderCircle className="animate-spin text-paz-primary" size={30} />
-          <p className="ml-3 text-sm font-semibold text-paz-muted">
-            Carregando células...
-          </p>
+        <div className="mt-6 flex items-center justify-center p-10">
+          <LoaderCircle className="animate-spin text-paz-primary" size={32} />
         </div>
-      ) : cells.length === 0 ? (
-        <EmptyCellList onCreateNewCell={onCreateNewCell} />
+      ) : pageError ? (
+        <div className="mt-6 rounded-xl border border-paz-error bg-paz-error/10 p-4 text-center text-sm font-medium text-paz-error">
+          {pageError}
+        </div>
       ) : (
         <>
-          {activeCells.length > 0 && (
-            <section className="mt-6">
-              <h3 className="mb-3 text-sm font-semibold text-paz-text">Células Ativas ({activeCells.length})</h3>
-              <div className="space-y-3">
+          {/* Seção de Células Ativas */}
+          <div className="mt-8">
+            <h3 className="text-lg font-bold text-paz-text">Células Ativas</h3>
+            {activeCells.length > 0 ? (
+              <div className="mt-4 grid grid-cols-1 gap-4">
                 {activeCells.map((cell) => (
-                  <CellListItem key={cell.id} cell={cell} onEdit={openEditForm} />
+                  <CellListItem key={cell.id} cell={cell} onEdit={openEditForm} isMaster={isMaster} />
                 ))}
               </div>
-            </section>
-          )}
+            ) : (
+              <div className="mt-4">
+                {/* Usar EmptyCellList para células ativas se não houver nenhuma */}
+                <EmptyCellList onCreateNewCell={onCreateNewCell} isMaster={isMaster} />
+              </div>
+            )}
+          </div>
 
-          {inactiveCells.length > 0 && (
-            <section className="mt-6">
-              <h3 className="mb-3 text-sm font-semibold text-paz-text">Células Inativas ({inactiveCells.length})</h3>
-              <div className="space-y-3">
+          {/* Seção de Células Inativas */}
+          <div className="mt-8">
+            <h3 className="text-lg font-bold text-paz-text">Células Inativas</h3>
+            {inactiveCells.length > 0 ? (
+              <div className="mt-4 grid grid-cols-1 gap-4">
                 {inactiveCells.map((cell) => (
-                  <CellListItem key={cell.id} cell={cell} onEdit={openEditForm} />
+                  <CellListItem key={cell.id} cell={cell} onEdit={openEditForm} isMaster={isMaster} />
                 ))}
               </div>
-            </section>
-          )}
+            ) : (
+              <p className="mt-4 text-sm text-paz-muted">Nenhuma célula inativa.</p>
+            )}
+          </div>
         </>
       )}
 
-      {/* Modal de Formulário */}
+      {/* Modal de Criação/Edição de Célula */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-end bg-paz-primary/20 p-0 backdrop-blur-[2px] sm:items-center sm:justify-center sm:p-4" role="presentation">
-          <div className="max-h-[92dvh] w-full overflow-y-auto rounded-t-xl bg-white p-5 shadow-float sm:max-w-md sm:rounded-xl sm:p-6" role="dialog" aria-modal="true" aria-labelledby="cell-form-title">
-            <div className="flex sticky top-0 bg-white z-10 items-start justify-between gap-4 pb-4">
-              <div>
-                <p className="text-sm font-semibold text-paz-primary">Gerenciamento</p>
-                <h3 id="cell-form-title" className="mt-1 text-xl font-bold tracking-tight text-paz-text">
-                  {selectedCell ? "Editar célula" : "Nova célula"}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-paz-muted">
-                  Preencha os dados da célula para cadastrar ou atualizar.
-                </p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-paz-text">
+                {selectedCell ? "Editar célula" : "Nova célula"}
+              </h3>
               <button
                 type="button"
                 onClick={closeForm}
-                disabled={isSubmitting}
-                aria-label="Fechar"
-                className="flex size-10 shrink-0 items-center justify-center rounded-xl text-paz-muted transition hover:bg-paz-soft hover:text-paz-primary disabled:cursor-not-allowed"
+                className="text-paz-muted transition hover:text-paz-text"
               >
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-5">
-              {formError && (
-                <p className="rounded-xl border border-paz-error bg-paz-error/10 p-3 text-sm font-medium text-paz-error">
-                  {formError}
-                </p>
-              )}
-
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
               <FormField label="Nome da célula" required error={errors.name?.message}>
                 <input
+                  type="text"
                   {...register("name")}
-                  placeholder="Ex.: Célula Esperança"
-                  className={inputClassName(Boolean(errors.name))}
+                  className={`${inputClassName(Boolean(errors.name))} ${!isMaster ? "cursor-not-allowed" : ""}`}
+                  disabled={!isMaster} // Desabilitar campo se não for Master
                 />
               </FormField>
 
               <FormField label="Nome do líder" error={errors.leaderName?.message}>
                 <input
+                  type="text"
                   {...register("leaderName")}
-                  placeholder="Ex.: Ana Silva"
-                  className={inputClassName(Boolean(errors.leaderName))}
+                  className={`${inputClassName(Boolean(errors.leaderName))} ${!isMaster ? "cursor-not-allowed" : ""}`}
+                  disabled={!isMaster} // Desabilitar campo se não for Master
                 />
               </FormField>
 
               <FormField label="Telefone do líder" error={errors.leaderPhone?.message}>
                 <input
+                  type="text"
                   {...register("leaderPhone")}
-                  placeholder="(00) 00000-0000"
-                  className={inputClassName(Boolean(errors.leaderPhone))}
+                  className={`${inputClassName(Boolean(errors.leaderPhone))} ${!isMaster ? "cursor-not-allowed" : ""}`}
+                  disabled={!isMaster} // Desabilitar campo se não for Master
                 />
               </FormField>
 
               <FormField label="Localização" error={errors.location?.message}>
                 <input
+                  type="text"
                   {...register("location")}
-                  placeholder="Ex.: Rua da Paz, 123 - Centro"
-                  className={inputClassName(Boolean(errors.location))}
+                  className={`${inputClassName(Boolean(errors.location))} ${!isMaster ? "cursor-not-allowed" : ""}`}
+                  disabled={!isMaster} // Desabilitar campo se não for Master
                 />
               </FormField>
 
@@ -336,9 +345,9 @@ export function CellsPage() {
                 <textarea
                   {...register("notes")}
                   rows={3}
-                  placeholder="Informações adicionais sobre a célula..."
-                  className={`${inputClassName(Boolean(errors.notes))} resize-y`}
-                ></textarea>
+                  className={`${inputClassName(Boolean(errors.notes))} resize-y ${!isMaster ? "cursor-not-allowed" : ""}`}
+                  disabled={!isMaster} // Desabilitar campo se não for Master
+                />
               </FormField>
 
               <div className="flex items-center gap-2">
@@ -346,26 +355,34 @@ export function CellsPage() {
                   type="checkbox"
                   {...register("isActive")}
                   id="isActive"
-                  className="h-4 w-4 rounded border-paz-border text-paz-primary focus:ring-paz-primary"
+                  className={`h-4 w-4 rounded border-paz-border text-paz-primary focus:ring-paz-primary ${!isMaster ? "cursor-not-allowed" : ""}`}
+                  disabled={!isMaster} // Desabilitar checkbox se não for Master
                 />
-                <label htmlFor="isActive" className="text-sm font-medium text-paz-text">
+                <label htmlFor="isActive" className="text-sm text-paz-text">
                   Célula ativa
                 </label>
               </div>
+
+              {formError && (
+                <p className="rounded-xl border border-paz-error bg-paz-error/10 p-3 text-sm font-medium text-paz-error">
+                  {formError}
+                </p>
+              )}
 
               <div className="flex flex-col-reverse gap-3 border-t border-paz-border pt-6 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="rounded-xl border border-paz-border px-4 py-3 text-sm font-bold text-paz-muted transition hover:bg-paz-soft disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isSubmitting}
+                  className="rounded-xl border border-paz-border px-4 py-3 text-sm font-bold text-paz-muted transition hover:bg-paz-soft disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="submit"
+                  disabled={isSubmitting || !isMaster} // Desabilita o botão de salvar se não for Master
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-paz-primary px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-paz-hover disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
@@ -391,25 +408,30 @@ export function CellsPage() {
 // --- Componente EmptyCellList ---
 type EmptyCellListProps = {
   onCreateNewCell: () => void;
+  isMaster: boolean; // Adicionado para controle de permissão
 };
 
-function EmptyCellList({ onCreateNewCell }: EmptyCellListProps) {
+function EmptyCellList({ onCreateNewCell, isMaster }: EmptyCellListProps) {
   return (
     <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-paz-border bg-white p-10 text-center">
       <UsersRound className="text-paz-muted" size={38} />
       <h3 className="mt-4 font-bold text-paz-text">Nenhuma célula cadastrada</h3>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-paz-muted">
-        As células da sua organização aparecerão aqui.
+        {isMaster
+          ? "As células da sua organização aparecerão aqui. Cadastre a primeira!"
+          : "As células da sua organização aparecerão aqui."}
       </p>
 
-      <button
-        type="button"
-        onClick={onCreateNewCell}
-        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-paz-hover"
-      >
-        <Plus size={18} />
-        Cadastrar primeira célula
-      </button>
+      {isMaster && ( // Botão "Cadastrar primeira célula" visível apenas para Masters
+        <button
+          type="button"
+          onClick={onCreateNewCell}
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-paz-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-paz-hover"
+        >
+          <Plus size={18} />
+          Cadastrar primeira célula
+        </button>
+      )}
     </div>
   );
 }
@@ -418,9 +440,10 @@ function EmptyCellList({ onCreateNewCell }: EmptyCellListProps) {
 type CellListItemProps = {
   cell: Cell;
   onEdit: (cell: Cell) => void;
+  isMaster: boolean; // Adicionado para controle de permissão
 };
 
-function CellListItem({ cell, onEdit }: CellListItemProps) {
+function CellListItem({ cell, onEdit, isMaster }: CellListItemProps) {
   return (
     <div className="rounded-2xl border border-paz-border bg-white p-4 shadow-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div className="flex-1">
@@ -458,14 +481,16 @@ function CellListItem({ cell, onEdit }: CellListItemProps) {
           </span>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={() => onEdit(cell)}
-        className="w-full sm:w-auto rounded-lg bg-paz-soft px-4 py-2.5 text-[13px] font-semibold text-paz-primary transition hover:bg-paz-primary hover:text-white shadow-sm"
-      >
-        <Edit3 size={16} className="inline-block mr-2" />
-        Editar
-      </button>
+      {isMaster && ( // Botão "Editar" visível apenas para Masters
+        <button
+          type="button"
+          onClick={() => onEdit(cell)}
+          className="w-full sm:w-auto rounded-lg bg-paz-soft px-4 py-2.5 text-[13px] font-semibold text-paz-primary transition hover:bg-paz-primary hover:text-white shadow-sm"
+        >
+          <Edit3 size={16} className="inline-block mr-2" />
+          Editar
+        </button>
+      )}
     </div>
   );
 }

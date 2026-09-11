@@ -102,7 +102,7 @@ export function DashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const visitors = await getVisitors();
+      const visitors = await getVisitors(profile);
 
       const pendingContact = visitors.filter(
         (v) => !v.firstContactMade && v.phone,
@@ -252,6 +252,7 @@ export function DashboardPage() {
       ) : (
         <>
           {/* Cards de Métricas */}
+          {profile?.role === "MASTER" && (
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {dashboardMetrics.map((metric, index) => (
               <article key={index} className="rounded-xl border border-paz-border bg-white p-5 shadow-panel">
@@ -267,7 +268,7 @@ export function DashboardPage() {
               </article>
             ))}
           </section>
-
+          )}
           {/* Seção de Pendências de acompanhamento */}
           <section className="rounded-xl border border-paz-border bg-white p-5 shadow-panel sm:p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

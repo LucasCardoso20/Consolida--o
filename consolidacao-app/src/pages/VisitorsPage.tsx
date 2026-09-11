@@ -16,6 +16,7 @@ import { Link } from "react-router-dom";
 import { getVisitors } from "../lib/visitors";
 import type { Visitor } from "../types/visitor";
 import { useVisitorsRealtime } from "../hooks/useVisitorsRealtime";
+import { useAccess } from "../contexts/AccessContext"; // Importar useAccess
 
 // --- Funções Auxiliares (mantidas como fornecido) ---
 function formatDate(date: string) {
@@ -60,6 +61,7 @@ function getVisitorStatus(visitor: Visitor) {
 
 // --- Componente VisitorsPage ---
 export function VisitorsPage() {
+  const { profile } = useAccess(); // Obter o perfil do usuário logado
   const [search, setSearch] = useState("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,7 +71,8 @@ export function VisitorsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const fetchedVisitors = await getVisitors();
+      // Passar o profile para a função getVisitors
+      const fetchedVisitors = await getVisitors(profile);
       setVisitors(fetchedVisitors);
     } catch (err) {
       console.error("Failed to load visitors:", err);
@@ -77,7 +80,7 @@ export function VisitorsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [profile]); // Adicionar profile como dependência para recarregar se o perfil mudar
 
   useEffect(() => {
     void loadVisitors();

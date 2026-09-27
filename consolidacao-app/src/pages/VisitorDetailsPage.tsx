@@ -28,6 +28,7 @@ import {
   getCells,
   getVisitorById,
   updateVisitor,
+  updateVisitorAcceptedJesus,
   updateVisitorProgress,
   type UpdateVisitorData,
 } from "../lib/visitors";
@@ -251,6 +252,7 @@ export function VisitorDetailsPage() {
   const [interactionError, setInteractionError] = useState<string | null>(null);
   const [responsibleLeaderId, setResponsibleLeaderId] = useState("");
   const [acceptedJesus, setAcceptedJesus] = useState(false);
+  const [isSavingAcceptedJesus, setIsSavingAcceptedJesus] = useState(false);
   const {
     register,
     handleSubmit,
@@ -313,6 +315,7 @@ export function VisitorDetailsPage() {
 
         const loadedVisitor = await getVisitorById(visitorId);
         setVisitor(loadedVisitor);
+        setAcceptedJesus(loadedVisitor.acceptedJesus ?? false);
       } catch (loadError) {
         setError(
           loadError instanceof Error
@@ -466,62 +469,62 @@ export function VisitorDetailsPage() {
     }
   }
 
-    // <--- FUNÇÃO toggleAcceptedJesus REVISADA
-  async function toggleAcceptedJesus() {
-    if (!visitor || !canEdit) return;
+   async function toggleAcceptedJesus() {
+  if (!visitor || !canEdit || isSavingAcceptedJesus) {
+    return;
+  }
 
-    setError(null); // Limpa erros anteriores
+  const previousAcceptedJesus = acceptedJesus;
+  const nextAcceptedJesus = !previousAcceptedJesus;
 
-    const previousAcceptedJesus = acceptedJesus; // Salva o estado anterior para rollback
-    const newAcceptedJesusStatus = !previousAcceptedJesus; // Calcula o novo estado
+  setIsSavingAcceptedJesus(true);
+  setError(null);
 
-    // 1. Atualização otimista da UI
-    setAcceptedJesus(newAcceptedJesusStatus); // Atualiza o estado local do checkbox
-    setVisitor((prevVisitor) => {
-      if (!prevVisitor) return null;
-      return { ...prevVisitor, acceptedJesus: newAcceptedJesusStatus };
+  // Atualização otimista: a interface responde imediatamente.
+  setAcceptedJesus(nextAcceptedJesus);
+  setVisitor((currentVisitor) => {
+    if (!currentVisitor) {
+      return null;
+    }
+
+    return {
+      ...currentVisitor,
+      acceptedJesus: nextAcceptedJesus,
+    };
+  });
+
+  try {
+    const updatedVisitor = await updateVisitorAcceptedJesus(
+      visitor.id,
+      nextAcceptedJesus,
+    );
+
+    // Confirma o estado com a resposta oficial do banco.
+    setVisitor(updatedVisitor);
+    setAcceptedJesus(updatedVisitor.acceptedJesus ?? false);
+  } catch (updateError) {
+    // Rollback: devolve a interface ao valor anterior se a persistência falhar.
+    setAcceptedJesus(previousAcceptedJesus);
+    setVisitor((currentVisitor) => {
+      if (!currentVisitor) {
+        return null;
+      }
+
+      return {
+        ...currentVisitor,
+        acceptedJesus: previousAcceptedJesus,
+      };
     });
 
-    try {
-      // 2. Prepara os dados para a API
-      // É crucial enviar TODOS os campos que 'updateVisitor' espera,
-      // mesmo que só um esteja mudando, para evitar que outros campos sejam resetados.
-      const updatedVisitorData: UpdateVisitorData = {
-        name: visitor.name,
-        phone: visitor.phone,
-        address: visitor.address,
-        invitedBy: visitor.invitedBy,
-        cellId: visitor.cellId,
-        visitDate: visitor.visitDate,
-        notes: visitor.notes,
-        followUpOwnerName: visitor.followUpOwnerName,
-        nextContactDate: visitor.nextContactDate,
-        nextAction: visitor.nextAction,
-        responsibleLeaderId: visitor.responsibleLeaderId, // Não esqueça campos obrigatórios!
-        acceptedJesus: newAcceptedJesusStatus, // O campo que estamos atualizando
-      };
-
-      // 3. Chama a API para atualizar o visitante
-      const updated = await updateVisitor(visitor.id, updatedVisitorData);
-
-      // 4. Atualiza o estado global do visitante com os dados retornados pela API (confirmação)
-      setVisitor(updated);
-      setAcceptedJesus(updated.acceptedJesus ?? false); // Garante que o estado local esteja sincronizado
-    } catch (updateError) {
-      // 5. Em caso de erro, reverte a UI para o estado anterior
-      setAcceptedJesus(previousAcceptedJesus);
-      setVisitor((prevVisitor) => {
-        if (!prevVisitor) return null;
-        return { ...prevVisitor, acceptedJesus: previousAcceptedJesus };
-      });
-      setError(
-        updateError instanceof Error
-          ? updateError.message
-          : "Não foi possível atualizar a decisão por Jesus.",
-      );
-    }
+    setError(
+      updateError instanceof Error
+        ? updateError.message
+        : "Não foi possível atualizar a decisão por Jesus.",
+    );
+  } finally {
+    setIsSavingAcceptedJesus(false);
   }
-  // --- FIM DA FUNÇÃO toggleAcceptedJesus REVISADA
+}
 
   function openInteractionModal() {
     resetInteraction({
@@ -976,7 +979,7 @@ export function VisitorDetailsPage() {
               <button
                 type="button"
                 onClick={() => void toggleAcceptedJesus()} // <--- CHAMADA DA FUNÇÃO
-                disabled={!canEdit}
+                disabled={!canEdit || isSavingAcceptedJesus}
                 className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${
                   acceptedJesus // <--- USA O ESTADO LOCAL AQUI
                     ? "border-paz-soft bg-paz-soft"
@@ -990,7 +993,11 @@ export function VisitorDetailsPage() {
                       : "border-paz-border bg-white"
                   }`}
                 >
-                  <Check size={16} />
+                  {isSavingAcceptedJesus ? (
+                    <LoaderCircle className="animate-spin" size={16} />
+                  ) : (
+                    <Check size={16} />
+                  )}
                 </span>
 
                 <span>

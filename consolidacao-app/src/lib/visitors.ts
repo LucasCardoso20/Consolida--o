@@ -445,12 +445,71 @@ accepted_jesus: visitorData.acceptedJesus,
   return mapVisitor(data as unknown as DatabaseVisitor);
 }
 
+export async function updateVisitorAcceptedJesus(
+  visitorId: string,
+  acceptedJesus: boolean,
+): Promise<Visitor> {
+  const { data, error } = await supabase
+    .from("visitors")
+    .update({
+      accepted_jesus: acceptedJesus,
+    })
+    .eq("id", visitorId)
+    .select(
+      `
+        id,
+        organization_id,
+        cell_id,
+        name,
+        phone,
+        address,
+        invited_by,
+        visit_date,
+        notes,
+        follow_up_owner_name,
+        next_contact_date,
+        next_action,
+        received_at_service,
+        received_gift,
+        phone_confirmed,
+        first_contact_made,
+        invited_to_cell,
+        attended_cell,
+        follow_up_completed,
+        status,
+        created_by,
+        created_at,
+        updated_at,
+        responsible_leader_id,
+        accepted_jesus,
+        cells ( name ),
+        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+          id,
+          full_name,
+          role
+        )
+      `,
+    )
+    .single();
+
+  if (error || !data) {
+    console.error("Erro ao atualizar decisão por Jesus:", error);
+
+    throw new Error(
+      "Não foi possível atualizar a decisão por Jesus do visitante.",
+    );
+  }
+
+  return mapVisitor(data as unknown as DatabaseVisitor);
+}
+
 export async function updateVisitorProgress(visitor: Visitor): Promise<Visitor> {
   const status = calculateVisitorStatus(visitor);
 
   const { data, error } = await supabase
     .from("visitors")
     .update({
+      received_at_service: visitor.receivedAtService,
       received_gift: visitor.receivedGift,
       phone_confirmed: visitor.phoneConfirmed,
       first_contact_made: visitor.firstContactMade,
@@ -487,7 +546,7 @@ export async function updateVisitorProgress(visitor: Visitor): Promise<Visitor> 
     updated_at,
 
     responsible_leader_id,
-
+    accepted_jesus,
     cells ( name ),
 
     responsible_leader:profiles!visitors_responsible_leader_id_fkey (

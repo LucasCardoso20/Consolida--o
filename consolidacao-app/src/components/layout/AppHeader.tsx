@@ -42,7 +42,7 @@ export function AppHeader() {
       {/* Título da página no desktop */}
       <div className="hidden lg:block">
         <p className="text-[11px] font-medium text-paz-muted">
-          Paz Church - Consolidação
+          Paz Church Curitiba - Consolidação
         </p>
 
         <h1

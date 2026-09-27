@@ -3,13 +3,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   Clock3,
+  HeartHandshake,
+  LoaderCircle,
+  Phone,
   Plus,
   Search,
   UserRound,
-  Users,
-  Phone,
   UserRoundPlus,
-  LoaderCircle,
+  Users,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -17,6 +18,64 @@ import { getVisitors } from "../lib/visitors";
 import type { Visitor } from "../types/visitor";
 import { useVisitorsRealtime } from "../hooks/useVisitorsRealtime";
 import { useAccess } from "../contexts/AccessContext";
+
+type QuickFilter =
+  | "all"
+  | "new"
+  | "pending"
+  | "in-follow-up"
+  | "completed"
+  | "accepted-jesus";
+
+type QuickFilterItem = {
+  id: QuickFilter;
+  label: string;
+  icon: typeof Users;
+};
+
+const quickFilters: QuickFilterItem[] = [
+  {
+    id: "all",
+    label: "Todos",
+    icon: Users,
+  },
+  {
+    id: "pending",
+    label: "Pendentes",
+    icon: Clock3,
+  },
+  {
+    id: "in-follow-up",
+    label: "Em acompanhamento",
+    icon: HeartHandshake,
+  },
+  {
+    id: "completed",
+    label: "Concluídos",
+    icon: CheckCircle2,
+  },
+  {
+    id: "accepted-jesus",
+    label: "Aceitou Jesus",
+    icon: HeartHandshake,
+  },
+  {
+    id: "new",
+    label: "Novos",
+    icon: UserRound,
+  },
+];
+
+function isQuickFilter(value: string | null): value is QuickFilter {
+  return (
+    value === "all" ||
+    value === "new" ||
+    value === "pending" ||
+    value === "in-follow-up" ||
+    value === "completed" ||
+    value === "accepted-jesus"
+  );
+}
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat("pt-BR", {
@@ -58,11 +117,47 @@ function getVisitorStatus(visitor: Visitor) {
   };
 }
 
+function matchesQuickFilter(visitor: Visitor, filter: QuickFilter) {
+  switch (filter) {
+    case "new":
+      return (
+        !visitor.phone &&
+        !visitor.firstContactMade &&
+        !visitor.followUpCompleted
+      );
+
+    case "pending":
+      return (
+        Boolean(visitor.phone) &&
+        !visitor.firstContactMade &&
+        !visitor.followUpCompleted
+      );
+
+    case "in-follow-up":
+      return visitor.firstContactMade && !visitor.followUpCompleted;
+
+    case "completed":
+      return visitor.followUpCompleted;
+
+    case "accepted-jesus":
+      return visitor.acceptedJesus;
+
+    case "all":
+    default:
+      return true;
+  }
+}
+
 export function VisitorsPage() {
   const { profile } = useAccess();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const searchFromUrl = searchParams.get("busca") ?? "";
+
+  const filterFromUrl = searchParams.get("filtro");
+  const selectedFilter: QuickFilter = isQuickFilter(filterFromUrl)
+    ? filterFromUrl
+    : "all";
 
   const [search, setSearch] = useState(searchFromUrl);
   const [visitors, setVisitors] = useState<Visitor[]>([]);
@@ -98,43 +193,82 @@ export function VisitorsPage() {
     },
   });
 
-  function handleSearchChange(value: string) {
-    setSearch(value);
-
-    const normalizedValue = value.trim();
+  function updateUrlParams(
+    nextSearch: string,
+    nextFilter: QuickFilter,
+  ) {
     const nextSearchParams = new URLSearchParams(searchParams);
+    const normalizedSearch = nextSearch.trim();
 
-    if (normalizedValue) {
-      nextSearchParams.set("busca", value);
+    if (normalizedSearch) {
+      nextSearchParams.set("busca", nextSearch);
     } else {
       nextSearchParams.delete("busca");
+    }
+
+    if (nextFilter === "all") {
+      nextSearchParams.delete("filtro");
+    } else {
+      nextSearchParams.set("filtro", nextFilter);
     }
 
     setSearchParams(nextSearchParams, { replace: true });
   }
 
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    updateUrlParams(value, selectedFilter);
+  }
+
+  function handleFilterChange(filter: QuickFilter) {
+    updateUrlParams(search, filter);
+  }
+
+  const filterCounts = useMemo(() => {
+    return quickFilters.reduce<Record<QuickFilter, number>>(
+      (counts, filter) => {
+        counts[filter.id] = visitors.filter((visitor) =>
+          matchesQuickFilter(visitor, filter.id),
+        ).length;
+
+        return counts;
+      },
+      {
+        all: 0,
+        new: 0,
+        pending: 0,
+        "in-follow-up": 0,
+        completed: 0,
+        "accepted-jesus": 0,
+      },
+    );
+  }, [visitors]);
+
   const filteredVisitors = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
 
-    if (!normalizedSearch) {
-      return visitors;
-    }
-
     return visitors.filter((visitor) => {
-      const searchableContent = [
-        visitor.name,
-        visitor.phone,
-        visitor.invitedBy,
-        visitor.cellName,
-        visitor.responsibleLeader?.fullName,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLocaleLowerCase("pt-BR");
+      const matchesSearch = !normalizedSearch
+        ? true
+        : [
+            visitor.name,
+            visitor.phone,
+            visitor.invitedBy,
+            visitor.cellName,
+            visitor.responsibleLeader?.fullName,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLocaleLowerCase("pt-BR")
+            .includes(normalizedSearch);
 
-      return searchableContent.includes(normalizedSearch);
+      const matchesFilter = matchesQuickFilter(visitor, selectedFilter);
+
+      return matchesSearch && matchesFilter;
     });
-  }, [search, visitors]);
+  }, [search, selectedFilter, visitors]);
+
+  const hasActiveFilters = Boolean(search.trim()) || selectedFilter !== "all";
 
   return (
     <section className="p-4 pb-24 lg:p-8 lg:pb-8">
@@ -174,6 +308,42 @@ export function VisitorsPage() {
         />
       </div>
 
+      <div className="mt-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 thin-scrollbar">
+          {quickFilters.map((filter) => {
+            const Icon = filter.icon;
+            const isActive = selectedFilter === filter.id;
+
+            return (
+              <button
+                key={filter.id}
+                type="button"
+                onClick={() => handleFilterChange(filter.id)}
+                className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition ${
+                  isActive
+                    ? "border-paz-primary bg-paz-primary text-white shadow-sm"
+                    : "border-paz-border bg-white text-paz-muted hover:border-paz-primary hover:bg-paz-soft hover:text-paz-primary"
+                }`}
+              >
+                <Icon size={15} strokeWidth={2} />
+
+                <span>{filter.label}</span>
+
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "bg-paz-soft text-paz-primary"
+                  }`}
+                >
+                  {filterCounts[filter.id]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {isLoading ? (
         <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-xl border border-paz-border bg-white p-8 shadow-sm">
           <LoaderCircle className="animate-spin text-paz-primary" size={24} />
@@ -197,7 +367,9 @@ export function VisitorsPage() {
           </h3>
 
           <p className="mt-2 text-sm text-paz-muted">
-            Tente buscar usando outro nome, telefone ou célula.
+            {hasActiveFilters
+              ? "Tente ajustar a busca ou selecionar outro filtro."
+              : "Não há visitantes para exibir."}
           </p>
         </div>
       ) : (

@@ -1,3 +1,4 @@
+// src/types/visitor.ts
 export type VisitorStatus =
   | "NEW"
   | "CONTACT_PENDING"
@@ -21,6 +22,7 @@ export type Visitor = {
   followUpOwnerName: string | null;
   nextContactDate: string | null;
   nextAction: string | null;
+
   receivedAtService: boolean;
   receivedGift: boolean;
   phoneConfirmed: boolean;
@@ -34,17 +36,16 @@ export type Visitor = {
   createdAt: string;
   updatedAt: string;
 
-  // ID salvo na tabela visitors.
   responsibleLeaderId: string;
 
-  // Dados do perfil relacionado, carregados na query do Supabase.
   responsibleLeader: {
     id: string;
     fullName: string | null;
     role: "MASTER" | "LEADER";
   } | null;
 
-  acceptedJesus?: boolean; // Nova propriedade para indicar se o visitante aceitou Jesus  
+  acceptedJesus: boolean;
+  reconciled: boolean;
 };
 
 export type Cell = {

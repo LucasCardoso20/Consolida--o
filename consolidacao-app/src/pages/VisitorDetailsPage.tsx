@@ -30,6 +30,7 @@ import {
   updateVisitor,
   updateVisitorAcceptedJesus,
   updateVisitorProgress,
+  updateVisitorReconciled,
 } from "../lib/visitors";
 import {
   createVisitorInteraction,
@@ -252,6 +253,8 @@ export function VisitorDetailsPage() {
   const [responsibleLeaderId, setResponsibleLeaderId] = useState("");
   const [acceptedJesus, setAcceptedJesus] = useState(false);
   const [isSavingAcceptedJesus, setIsSavingAcceptedJesus] = useState(false);
+  const [reconciled, setReconciled] = useState(false);
+const [isSavingReconciled, setIsSavingReconciled] = useState(false);
   const {
     register,
     handleSubmit,
@@ -315,6 +318,7 @@ export function VisitorDetailsPage() {
         const loadedVisitor = await getVisitorById(visitorId);
         setVisitor(loadedVisitor);
         setAcceptedJesus(loadedVisitor.acceptedJesus ?? false);
+        setReconciled(loadedVisitor.reconciled);
       } catch (loadError) {
         setError(
           loadError instanceof Error
@@ -522,6 +526,63 @@ export function VisitorDetailsPage() {
     );
   } finally {
     setIsSavingAcceptedJesus(false);
+  }
+}
+async function toggleReconciled() {
+  if (!visitor || !canEdit || isSavingReconciled) {
+    return;
+  }
+
+  const previousReconciled = reconciled;
+  const nextReconciled = !previousReconciled;
+
+  setIsSavingReconciled(true);
+  setError(null);
+
+  // Atualização otimista da interface.
+  setReconciled(nextReconciled);
+
+  setVisitor((currentVisitor) => {
+    if (!currentVisitor) {
+      return null;
+    }
+
+    return {
+      ...currentVisitor,
+      reconciled: nextReconciled,
+    };
+  });
+
+  try {
+    const updatedVisitor = await updateVisitorReconciled(
+      visitor.id,
+      nextReconciled,
+    );
+
+    setVisitor(updatedVisitor);
+    setReconciled(updatedVisitor.reconciled);
+  } catch (updateError) {
+    // Reverte a interface caso a persistência falhe.
+    setReconciled(previousReconciled);
+
+    setVisitor((currentVisitor) => {
+      if (!currentVisitor) {
+        return null;
+      }
+
+      return {
+        ...currentVisitor,
+        reconciled: previousReconciled,
+      };
+    });
+
+    setError(
+      updateError instanceof Error
+        ? updateError.message
+        : "Não foi possível atualizar a reconciliação.",
+    );
+  } finally {
+    setIsSavingReconciled(false);
   }
 }
 
@@ -974,20 +1035,20 @@ export function VisitorDetailsPage() {
               </div>
             </div>
 
-            <div className="mt-5">
+            <div className="mt-5 space-y-3">
               <button
                 type="button"
-                onClick={() => void toggleAcceptedJesus()} // <--- CHAMADA DA FUNÇÃO
+                onClick={() => void toggleAcceptedJesus()}
                 disabled={!canEdit || isSavingAcceptedJesus}
-                className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${
-                  acceptedJesus // <--- USA O ESTADO LOCAL AQUI
+                className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                  acceptedJesus
                     ? "border-paz-soft bg-paz-soft"
                     : "border-paz-border hover:border-paz-primary hover:bg-paz-soft"
                 }`}
               >
                 <span
                   className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border transition ${
-                    acceptedJesus // <--- E AQUI
+                    acceptedJesus
                       ? "border-paz-primary bg-paz-primary text-white"
                       : "border-paz-border bg-white"
                   }`}
@@ -1006,6 +1067,41 @@ export function VisitorDetailsPage() {
 
                   <span className="mt-0.5 block text-xs leading-relaxed text-paz-muted">
                     Marque se o visitante fez uma decisão por Jesus.
+                  </span>
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void toggleReconciled()}
+                disabled={!canEdit || isSavingReconciled}
+                className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                  reconciled
+                    ? "border-paz-soft bg-paz-soft"
+                    : "border-paz-border hover:border-paz-primary hover:bg-paz-soft"
+                }`}
+              >
+                <span
+                  className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border transition ${
+                    reconciled
+                      ? "border-paz-primary bg-paz-primary text-white"
+                      : "border-paz-border bg-white"
+                  }`}
+                >
+                  {isSavingReconciled ? (
+                    <LoaderCircle className="animate-spin" size={16} />
+                  ) : (
+                    <Check size={16} />
+                  )}
+                </span>
+
+                <span>
+                  <span className="block text-sm font-bold text-paz-text">
+                    Reconciliou
+                  </span>
+
+                  <span className="mt-0.5 block text-xs leading-relaxed text-paz-muted">
+                    Marque se o visitante se reconciliou com Jesus.
                   </span>
                 </span>
               </button>

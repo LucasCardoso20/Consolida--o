@@ -40,6 +40,7 @@ next_action: string | null;
   } | null;
 
   accepted_jesus?: boolean | null; // Nova propriedade para indicar se o visitante aceitou Jesus
+  reconciled?: boolean | null;
 };
 
 type Profile = {
@@ -74,7 +75,8 @@ export type UpdateVisitorData = {
   followUpOwnerName: string | null;
   nextContactDate: string | null;
   nextAction: string | null;
-  acceptedJesus?: boolean | null; // Novo campo para "Aceitou Jesus"
+  acceptedJesus?: boolean | null; // Novo campo para "Aceitou Jesus",
+  reconciled?: boolean | null; // Novo campo para "Reconciliado"
 };
 
 function mapVisitor(visitor: DatabaseVisitor): Visitor {
@@ -116,6 +118,7 @@ nextAction: visitor.next_action,
       : null,
 
     acceptedJesus: visitor.accepted_jesus ?? false, // Preencher com false se for null ou undefined
+    reconciled: visitor.reconciled ?? false,
   };
 }
 
@@ -219,6 +222,7 @@ export async function getVisitors(userProfile: UserProfile | null): Promise<Visi
         updated_at,
         responsible_leader_id,
         accepted_jesus,
+        reconciled,
         cells ( name ),
         responsible_leader:profiles!visitors_responsible_leader_id_fkey (
           id,
@@ -276,7 +280,7 @@ export async function getVisitorById(visitorId: string): Promise<Visitor> {
 
     responsible_leader_id,
     accepted_jesus,
-
+    reconciled,
     cells ( name ),
 
     responsible_leader:profiles!visitors_responsible_leader_id_fkey (
@@ -396,6 +400,7 @@ export async function updateVisitor(
     next_contact_date: visitorData.nextContactDate,
     next_action: normalizeOptionalValue(visitorData.nextAction),
 accepted_jesus: visitorData.acceptedJesus,
+    reconciled: visitorData.reconciled,
     })
     .eq("id", visitorId)
     .select(
@@ -426,7 +431,7 @@ accepted_jesus: visitorData.acceptedJesus,
 
     responsible_leader_id,
     accepted_jesus,
-
+    reconciled,
     cells ( name ),
 
     responsible_leader:profiles!visitors_responsible_leader_id_fkey (
@@ -452,8 +457,8 @@ export async function updateVisitorAcceptedJesus(
   const { data, error } = await supabase
     .from("visitors")
     .update({
-      accepted_jesus: acceptedJesus,
-    })
+      accepted_jesus: acceptedJesus
+        })
     .eq("id", visitorId)
     .select(
       `
@@ -498,6 +503,63 @@ export async function updateVisitorAcceptedJesus(
     throw new Error(
       "Não foi possível atualizar a decisão por Jesus do visitante.",
     );
+  }
+
+  return mapVisitor(data as unknown as DatabaseVisitor);
+}
+
+export async function updateVisitorReconciled(
+  visitorId: string,
+  reconciled: boolean,
+): Promise<Visitor> {
+  const { data, error } = await supabase
+    .from("visitors")
+    .update({
+      reconciled,
+    })
+    .eq("id", visitorId)
+    .select(
+      `
+        id,
+        organization_id,
+        cell_id,
+        name,
+        phone,
+        address,
+        invited_by,
+        visit_date,
+        notes,
+        follow_up_owner_name,
+        next_contact_date,
+        next_action,
+        received_at_service,
+        received_gift,
+        phone_confirmed,
+        first_contact_made,
+        invited_to_cell,
+        attended_cell,
+        follow_up_completed,
+        status,
+        created_by,
+        created_at,
+        updated_at,
+        responsible_leader_id,
+        accepted_jesus,
+        reconciled,
+        cells ( name ),
+        responsible_leader:profiles!visitors_responsible_leader_id_fkey (
+          id,
+          full_name,
+          role
+        )
+      `,
+    )
+    .single();
+
+  if (error || !data) {
+    console.error("Erro ao atualizar reconciliação:", error);
+
+    throw new Error("Não foi possível atualizar a reconciliação do visitante.");
   }
 
   return mapVisitor(data as unknown as DatabaseVisitor);

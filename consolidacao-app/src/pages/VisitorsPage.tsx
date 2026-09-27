@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   Clock3,
+  HandHeart,
   HeartHandshake,
   LoaderCircle,
   Phone,
@@ -25,7 +26,8 @@ type QuickFilter =
   | "pending"
   | "in-follow-up"
   | "completed"
-  | "accepted-jesus";
+  | "accepted-jesus"
+  | "reconciled";
 
 type QuickFilterItem = {
   id: QuickFilter;
@@ -59,6 +61,13 @@ const quickFilters: QuickFilterItem[] = [
     label: "Aceitou Jesus",
     icon: HeartHandshake,
   },
+
+  {
+    id: "reconciled",
+    label: "Reconciliou",
+    icon: HandHeart,
+  },
+
   {
     id: "new",
     label: "Novos",
@@ -73,7 +82,8 @@ function isQuickFilter(value: string | null): value is QuickFilter {
     value === "pending" ||
     value === "in-follow-up" ||
     value === "completed" ||
-    value === "accepted-jesus"
+    value === "accepted-jesus" ||
+    value === "reconciled"
   );
 }
 
@@ -141,6 +151,9 @@ function matchesQuickFilter(visitor: Visitor, filter: QuickFilter) {
 
     case "accepted-jesus":
       return visitor.acceptedJesus;
+
+    case "reconciled":
+      return visitor.reconciled;
 
     case "all":
     default:
@@ -240,6 +253,7 @@ export function VisitorsPage() {
         "in-follow-up": 0,
         completed: 0,
         "accepted-jesus": 0,
+        "reconciled": 0,
       },
     );
   }, [visitors]);

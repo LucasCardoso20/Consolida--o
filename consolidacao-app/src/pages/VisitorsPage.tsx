@@ -11,14 +11,13 @@ import {
   UserRoundPlus,
   LoaderCircle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { getVisitors } from "../lib/visitors";
 import type { Visitor } from "../types/visitor";
 import { useVisitorsRealtime } from "../hooks/useVisitorsRealtime";
-import { useAccess } from "../contexts/AccessContext"; // Importar useAccess
+import { useAccess } from "../contexts/AccessContext";
 
-// --- Funções Auxiliares (mantidas como fornecido) ---
 function formatDate(date: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -59,28 +58,35 @@ function getVisitorStatus(visitor: Visitor) {
   };
 }
 
-// --- Componente VisitorsPage ---
 export function VisitorsPage() {
-  const { profile } = useAccess(); // Obter o perfil do usuário logado
-  const [search, setSearch] = useState("");
+  const { profile } = useAccess();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const searchFromUrl = searchParams.get("busca") ?? "";
+
+  const [search, setSearch] = useState(searchFromUrl);
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setSearch(searchFromUrl);
+  }, [searchFromUrl]);
+
   const loadVisitors = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+
     try {
-      // Passar o profile para a função getVisitors
       const fetchedVisitors = await getVisitors(profile);
       setVisitors(fetchedVisitors);
-    } catch (err) {
-      console.error("Failed to load visitors:", err);
+    } catch (loadError) {
+      console.error("Failed to load visitors:", loadError);
       setError("Não foi possível carregar os visitantes.");
     } finally {
       setIsLoading(false);
     }
-  }, [profile]); // Adicionar profile como dependência para recarregar se o perfil mudar
+  }, [profile]);
 
   useEffect(() => {
     void loadVisitors();
@@ -91,6 +97,21 @@ export function VisitorsPage() {
       void loadVisitors();
     },
   });
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+
+    const normalizedValue = value.trim();
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    if (normalizedValue) {
+      nextSearchParams.set("busca", value);
+    } else {
+      nextSearchParams.delete("busca");
+    }
+
+    setSearchParams(nextSearchParams, { replace: true });
+  }
 
   const filteredVisitors = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
@@ -116,15 +137,15 @@ export function VisitorsPage() {
   }, [search, visitors]);
 
   return (
-    // Adicionado padding horizontal e vertical para a página
-    // O pb-24 é para garantir espaço para a bottom navigation
     <section className="p-4 pb-24 lg:p-8 lg:pb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-paz-primary">Pessoas</p>
+
           <h2 className="mt-1 text-2xl font-bold tracking-tight text-paz-text">
             Visitantes
           </h2>
+
           <p className="mt-2 text-sm text-paz-muted">
             {visitors.length === 1
               ? "1 visitante cadastrado"
@@ -143,11 +164,12 @@ export function VisitorsPage() {
 
       <div className="relative mt-6">
         <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-paz-muted" />
+
         <input
-          type="text"
+          type="search"
           placeholder="Buscar visitantes..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(event) => handleSearchChange(event.target.value)}
           className="w-full rounded-xl border border-paz-border bg-white py-2.5 pl-10 pr-4 text-[12px] text-paz-text outline-none transition placeholder:text-paz-muted focus:border-paz-primary focus:ring-3 focus:ring-paz-soft"
         />
       </div>
@@ -155,6 +177,7 @@ export function VisitorsPage() {
       {isLoading ? (
         <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-xl border border-paz-border bg-white p-8 shadow-sm">
           <LoaderCircle className="animate-spin text-paz-primary" size={24} />
+
           <p className="text-sm font-medium text-paz-muted">
             Carregando visitantes...
           </p>
@@ -165,39 +188,39 @@ export function VisitorsPage() {
         </div>
       ) : visitors.length === 0 ? (
         <EmptyVisitorList />
+      ) : filteredVisitors.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center">
+          <Search className="mx-auto text-paz-muted" size={38} />
+
+          <h3 className="mt-4 font-bold text-paz-text">
+            Nenhum resultado encontrado
+          </h3>
+
+          <p className="mt-2 text-sm text-paz-muted">
+            Tente buscar usando outro nome, telefone ou célula.
+          </p>
+        </div>
       ) : (
-        <>
-          {filteredVisitors.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center">
-              <Search className="mx-auto text-paz-muted" size={38} />
-              <h3 className="mt-4 font-bold text-paz-text">
-                Nenhum resultado encontrado
-              </h3>
-              <p className="mt-2 text-sm text-paz-muted">
-                Tente buscar usando outro nome, telefone ou célula.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-6 space-y-3">
-              {filteredVisitors.map((visitor) => (
-                <VisitorCard key={visitor.id} visitor={visitor} />
-              ))}
-            </div>
-          )}
-        </>
+        <div className="mt-6 space-y-3">
+          {filteredVisitors.map((visitor) => (
+            <VisitorCard key={visitor.id} visitor={visitor} />
+          ))}
+        </div>
       )}
     </section>
   );
 }
 
-// --- Componente EmptyVisitorList ---
 function EmptyVisitorList() {
   return (
     <div className="mt-6 rounded-2xl border border-dashed border-paz-border bg-white px-4 py-14 text-center">
       <Users className="mx-auto text-paz-muted" size={38} />
+
       <h3 className="mt-4 font-bold text-paz-text">A lista está vazia</h3>
+
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-paz-muted">
-        Os visitantes cadastrados aparecerão aqui para facilitar o acompanhamento.
+        Os visitantes cadastrados aparecerão aqui para facilitar o
+        acompanhamento.
       </p>
 
       <Link
@@ -211,7 +234,6 @@ function EmptyVisitorList() {
   );
 }
 
-// --- Componente VisitorCard ---
 type VisitorCardProps = {
   visitor: Visitor;
 };
@@ -233,7 +255,9 @@ function VisitorCard({ visitor }: VisitorCardProps) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <h3 className="truncate font-bold text-paz-text">{visitor.name}</h3>
+              <h3 className="truncate font-bold text-paz-text">
+                {visitor.name}
+              </h3>
 
               <p className="mt-1 text-xs text-paz-muted">
                 Visitou em {formatDate(visitor.visitDate)}
@@ -249,24 +273,29 @@ function VisitorCard({ visitor }: VisitorCardProps) {
             </span>
           </div>
 
-          <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-4 gap-y-2 text-xs font-medium text-paz-muted">
+          <div className="mt-4 flex flex-col gap-x-4 gap-y-2 text-xs font-medium text-paz-muted sm:flex-row sm:flex-wrap sm:items-center">
             {visitor.phone && (
-              <span className="inline-flex items-center gap-1.5 min-w-0">
+              <span className="inline-flex min-w-0 items-center gap-1.5">
                 <Phone size={14} />
                 <span className="truncate">{visitor.phone}</span>
               </span>
             )}
 
             {visitor.invitedBy && (
-              <span className="inline-flex items-center gap-1.5 min-w-0">
+              <span className="inline-flex min-w-0 items-center gap-1.5">
                 <UserRoundPlus size={14} />
-                <span className="truncate">Convidado por: {visitor.invitedBy}</span>
+                <span className="truncate">
+                  Convidado por: {visitor.invitedBy}
+                </span>
               </span>
             )}
 
-            <span className="inline-flex items-center gap-1.5 min-w-0">
+            <span className="inline-flex min-w-0 items-center gap-1.5">
               <Users size={14} />
-              <span className="truncate">Responsável: {visitor.responsibleLeader?.fullName || "Não informado"}</span>
+              <span className="truncate">
+                Responsável:{" "}
+                {visitor.responsibleLeader?.fullName || "Não informado"}
+              </span>
             </span>
           </div>
         </div>

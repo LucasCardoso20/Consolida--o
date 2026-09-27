@@ -564,3 +564,29 @@ export async function updateVisitorProgress(visitor: Visitor): Promise<Visitor> 
 
   return mapVisitor(data as unknown as DatabaseVisitor);
 }
+
+export async function getVisitorsCount(
+  userProfile: UserProfile | null,
+): Promise<number> {
+  if (!userProfile) {
+    return 0;
+  }
+
+  let query = supabase
+    .from("visitors")
+    .select("*", { count: "exact", head: true });
+
+  // Líder visualiza apenas os visitantes sob sua responsabilidade.
+  if (userProfile.role === "LEADER") {
+    query = query.eq("responsible_leader_id", userProfile.id);
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    console.error("Erro ao contar visitantes:", error);
+    throw new Error("Não foi possível carregar a quantidade de visitantes.");
+  }
+
+  return count ?? 0;
+}

@@ -30,7 +30,6 @@ import {
   updateVisitor,
   updateVisitorAcceptedJesus,
   updateVisitorProgress,
-  type UpdateVisitorData,
 } from "../lib/visitors";
 import {
   createVisitorInteraction,
